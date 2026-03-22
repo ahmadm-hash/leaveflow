@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { hashPassword } from "../utils/password";
 
 const prisma = new PrismaClient();
@@ -261,7 +261,7 @@ export const userController = {
 
       const hashedPassword = await hashPassword(password);
 
-      const createdUser = await prisma.$transaction(async (transaction) => {
+      const createdUser = await prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
         const user = await transaction.user.create({
           data: {
             email,
@@ -348,7 +348,7 @@ export const userController = {
         return;
       }
 
-      await prisma.$transaction(async (transaction) => {
+      await prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
         await transaction.user.update({
           where: { id: userId },
           data: {
