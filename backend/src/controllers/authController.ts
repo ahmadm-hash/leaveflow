@@ -3,8 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import { hashPassword, comparePassword } from "../utils/password";
 import { generateToken } from "../utils/jwt";
 
-const VALID_ROLES = ["EMPLOYEE", "SUPERVISOR", "DEPARTMENT_HEAD", "ADMIN"];
-
 const prisma = new PrismaClient();
 
 export const authController = {
@@ -18,17 +16,20 @@ export const authController = {
   // Login
   login: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { username, password } = req.body;
+      const { username, password } = req.body as { username?: string; password?: string };
+      const normalizedLogin = username?.trim();
 
       // Validate input
-      if (!username || !password) {
+      if (!normalizedLogin || !password) {
         res.status(400).json({ message: "Username and password required" });
         return;
       }
 
       // Find user
       const user = await prisma.user.findUnique({
-        where: { username },
+        where: normalizedLogin.includes("@")
+          ? { email: normalizedLogin.toLowerCase() }
+          : { username: normalizedLogin },
       });
 
       if (!user || !user.isActive) {
@@ -51,14 +52,18 @@ export const authController = {
         role: user.role,
       });
 
-      // Log audit
-      await prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          action: "LOGIN",
-          ipAddress: req.ip || "unknown",
-        },
-      });
+      // Do not block login if audit storage fails.
+      try {
+        await prisma.auditLog.create({
+          data: {
+            userId: user.id,
+            action: "LOGIN",
+            ipAddress: req.ip || "unknown",
+          },
+        });
+      } catch (auditError) {
+        console.warn("Audit log write failed during login", auditError);
+      }
 
       res.json({
         message: "Login successful",
