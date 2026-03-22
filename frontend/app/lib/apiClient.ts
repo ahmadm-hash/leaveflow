@@ -1,7 +1,20 @@
 import axios, { AxiosInstance } from "axios";
 import { useAuthStore } from "../store/authStore";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const resolveApiUrl = (): string => {
+  const configuredUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+    return `${window.location.origin}/api`;
+  }
+
+  return "http://localhost:5000/api";
+};
+
+const API_URL = resolveApiUrl();
 
 let apiClient: AxiosInstance;
 
