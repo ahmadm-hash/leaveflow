@@ -8,65 +8,11 @@ const VALID_ROLES = ["EMPLOYEE", "SUPERVISOR", "DEPARTMENT_HEAD", "ADMIN"];
 const prisma = new PrismaClient();
 
 export const authController = {
-  // Register new user (Admin only)
+  // Public self-registration is disabled. Users must be created by authorized staff.
   register: async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { email, username, password, fullName, role = "EMPLOYEE" } = req.body;
-
-      // Validate input
-      if (!email || !username || !password || !fullName) {
-        res.status(400).json({ message: "Missing required fields" });
-        return;
-      }
-
-      if (!VALID_ROLES.includes(role)) {
-        res.status(400).json({ message: "Invalid role value" });
-        return;
-      }
-
-      // Public registration is limited to EMPLOYEE to prevent privilege escalation.
-      const safeRole = "EMPLOYEE";
-
-      // Check if user already exists
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [{ email }, { username }],
-        },
-      });
-
-      if (existingUser) {
-        res.status(400).json({ message: "User already exists" });
-        return;
-      }
-
-      // Hash password
-      const hashedPassword = await hashPassword(password);
-
-      // Create user
-      const user = await prisma.user.create({
-        data: {
-          email,
-          username,
-          password: hashedPassword,
-          fullName,
-          role: safeRole,
-        },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          fullName: true,
-          role: true,
-        },
-      });
-
-      res.status(201).json({
-        message: "User registered successfully",
-        user,
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Registration failed", error });
-    }
+    res.status(403).json({
+      message: "Self-registration is disabled. Please contact your supervisor or department head.",
+    });
   },
 
   // Login

@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import leaveRoutes from "./routes/leaveRoutes";
+import { ensureDepartmentHeadUser } from "./utils/ensureDepartmentHeadUser";
 
 dotenv.config();
 
@@ -38,6 +39,15 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 LeaveFlow Backend running on port ${PORT}`);
+const startServer = async () => {
+  await ensureDepartmentHeadUser();
+
+  app.listen(PORT, () => {
+    console.log(`🚀 LeaveFlow Backend running on port ${PORT}`);
+  });
+};
+
+startServer().catch((error) => {
+  console.error("Failed to start server", error);
+  process.exit(1);
 });

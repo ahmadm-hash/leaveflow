@@ -127,18 +127,6 @@ export default function LoginPage() {
             {loading ? "Loading..." : "Login"}
           </button>
         </form>
-
-        <div style={{ marginTop: "20px", textAlign: "center" }}>
-          <p style={{ color: "#666", fontSize: "14px" }}>
-            Don't have an account?{" "}
-            <a
-              href="/register"
-              style={{ color: "#007bff", textDecoration: "none" }}
-            >
-              Register here
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );

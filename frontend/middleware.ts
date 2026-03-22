@@ -5,7 +5,15 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Allow auth pages without token
-  if (pathname === '/login' || pathname === '/register' || pathname === '/') {
+  if (pathname === '/login' || pathname === '/') {
+    return NextResponse.next();
+  }
+
+  if (pathname === '/register') {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  if (pathname.startsWith('/dashboard')) {
     return NextResponse.next();
   }
 

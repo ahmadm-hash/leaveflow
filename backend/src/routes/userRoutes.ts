@@ -20,6 +20,12 @@ router.get(
   userController.getAllUsers
 );
 
+router.post(
+  "/",
+  authorizeRole("SUPERVISOR", "DEPARTMENT_HEAD"),
+  userController.createUser
+);
+
 // Supervisor routes
 router.get(
   "/site-employees",
