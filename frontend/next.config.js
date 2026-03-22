@@ -7,6 +7,18 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
   },
+  async rewrites() {
+    if (!process.env.BACKEND_URL) {
+      return [];
+    }
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.BACKEND_URL}/api/:path*`,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
