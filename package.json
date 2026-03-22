@@ -1,0 +1,25 @@
+{
+  "name": "leaveflow",
+  "private": true,
+  "version": "1.0.0",
+  "description": "LeaveFlow - Integrated Leave Management System",
+  "author": "Your Name",
+  "license": "MIT",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install-all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
+    "dev": "npm run dev --workspace=backend & npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "start": "npm run start --workspace=backend & npm start --workspace=frontend"
+  },
+  "keywords": [
+    "leave",
+    "management",
+    "system",
+    "hrms",
+    "employee"
+  ]
+}

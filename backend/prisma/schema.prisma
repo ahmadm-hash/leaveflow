@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Valid UserRole values: EMPLOYEE | SUPERVISOR | DEPARTMENT_HEAD | ADMIN
+// Valid LeaveType values: ANNUAL | SICK | COMPASSIONATE | UNPAID
+// Valid LeaveStatus values: PENDING | APPROVED_BY_SUPERVISOR | APPROVED_BY_DEPARTMENT_HEAD | REJECTED | CANCELLED
+
+// Site/Location Model
+model Site {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  location     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  supervisorId String?  @unique
+
+  // Relations
+  supervisor    User?          @relation("SiteSupervisor", fields: [supervisorId], references: [id])
+  employees     User[]         @relation("SiteEmployees")
+  leaveRequests LeaveRequest[]
+
+  @@map("sites")
+}
+
+// User Model
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String   // bcrypt hashed
+  fullName  String
+  role      String   @default("EMPLOYEE") // EMPLOYEE | SUPERVISOR | DEPARTMENT_HEAD | ADMIN
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Remaining leave balance for annual leaves
+  annualLeaveBalance Int @default(30)
+
+  // Relations
+  site            Site?          @relation("SiteEmployees", fields: [siteId], references: [id])
+  siteId          String?
+  leaveRequests   LeaveRequest[] @relation("EmployeeLeaves")
+  supervisedSite  Site?          @relation("SiteSupervisor")
+  departmentLeads Department[]   @relation("DepartmentHead")
+  leaveReviews    LeaveReview[]  @relation("ReviewerLeaves")
+  auditLogs       AuditLog[]
+
+  @@index([siteId])
+  @@index([role])
+  @@map("users")
+}
+
+// Department Model
+model Department {
+  id     String @id @default(cuid())
+  name   String @unique
+  headId String?
+
+  // Relations
+  head          User?          @relation("DepartmentHead", fields: [headId], references: [id])
+  leaveRequests LeaveRequest[]
+
+  @@map("departments")
+}
+
+// Leave Request Model
+model LeaveRequest {
+  id           String   @id @default(cuid())
+  startDate    DateTime
+  endDate      DateTime
+  leaveType    String   // ANNUAL | SICK | COMPASSIONATE | UNPAID
+  status       String   @default("PENDING") // PENDING | APPROVED_BY_SUPERVISOR | APPROVED_BY_DEPARTMENT_HEAD | REJECTED | CANCELLED
+  reason       String?
+  documentUrl  String?  // For medical reports
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  employeeId   String
+  siteId       String
+  departmentId String
+
+  // Relations
+  employee     User         @relation("EmployeeLeaves", fields: [employeeId], references: [id], onDelete: Cascade)
+  site         Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  leaveReview  LeaveReview[]
+
+  @@index([employeeId])
+  @@index([siteId])
+  @@index([status])
+  @@map("leave_requests")
+}
+
+// Leave Review/Approval Model
+model LeaveReview {
+  id             String   @id @default(cuid())
+  comment        String?
+  reviewedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  leaveRequestId String
+  reviewerId     String
+  role           String   // Role of reviewer at time of review
+
+  // Relations
+  leaveRequest LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  reviewer     User         @relation("ReviewerLeaves", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([leaveRequestId, reviewerId, role])
+  @@map("leave_reviews")
+}
+
+// Audit Log Model
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  userId    String
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
