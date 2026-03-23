@@ -377,6 +377,8 @@ export const leaveController = {
         ? await getSupervisedSiteIds(req.user.userId)
         : [];
       const canActAsDepartmentHead = hasDepartmentHeadPrivileges(req);
+      const reviewerUserId = req.user.userId;
+      const reviewerRole = req.user.role;
       const canReviewPending = req.user.role === "SUPERVISOR" && supervisedSiteIds.includes(leaveRequest.siteId);
       const canReviewDepartmentStage =
         canActAsDepartmentHead && leaveRequest.status === "APPROVED_BY_SUPERVISOR";
@@ -398,9 +400,9 @@ export const leaveController = {
         return;
       }
 
-      const reviewRoleLabel = req.user.role === "SUPERVISOR" && canActAsDepartmentHead
+      const reviewRoleLabel = reviewerRole === "SUPERVISOR" && canActAsDepartmentHead
         ? "DEPARTMENT_HEAD"
-        : req.user.role;
+        : reviewerRole;
 
       await prisma.$transaction(async (tx) => {
         if (leaveRequest.status === "CANCELLATION_REQUESTED") {
@@ -419,7 +421,7 @@ export const leaveController = {
           await tx.leaveReview.create({
             data: {
               leaveRequestId,
-              reviewerId: req.user!.userId,
+              reviewerId: reviewerUserId,
               role: reviewRoleLabel,
               comment: comment?.trim() || (action === "approve" ? "Cancellation approved" : "Cancellation rejected"),
             },
@@ -445,7 +447,7 @@ export const leaveController = {
           newStatus = "REJECTED";
         } else if (canActAsDepartmentHead && leaveRequest.status === "APPROVED_BY_SUPERVISOR") {
           newStatus = "APPROVED_BY_DEPARTMENT_HEAD";
-        } else if (req.user.role === "SUPERVISOR") {
+        } else if (reviewerRole === "SUPERVISOR") {
           newStatus = "APPROVED_BY_SUPERVISOR";
         } else {
           newStatus =
@@ -462,7 +464,7 @@ export const leaveController = {
         await tx.leaveReview.create({
           data: {
             leaveRequestId,
-            reviewerId: req.user!.userId,
+            reviewerId: reviewerUserId,
             role: reviewRoleLabel,
             comment: comment?.trim() || null,
           },
