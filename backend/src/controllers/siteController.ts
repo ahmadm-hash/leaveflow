@@ -30,6 +30,16 @@ export const siteController = {
 
   createSite: async (req: Request, res: Response): Promise<void> => {
     try {
+      if (!req.user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+
+      if (req.user.effectiveRole !== "DEPARTMENT_HEAD") {
+        res.status(403).json({ message: "Forbidden: Only department head or delegated department head can create sites" });
+        return;
+      }
+
       const { name, location } = req.body as { name?: string; location?: string };
 
       if (!name || !name.trim() || !location || !location.trim()) {

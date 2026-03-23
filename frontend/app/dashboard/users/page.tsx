@@ -36,7 +36,7 @@ export default function UsersPage() {
 
   const canCreateEmployee = user?.role === "SUPERVISOR";
   const canCreateSupervisor = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
-  const canCreateSite = user?.role === "DEPARTMENT_HEAD" || user?.role === "SUPERVISOR";
+  const canCreateSite = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead === true;
   const canManageSupervisors = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
   const canResetEmployeePasswords = user?.role === "SUPERVISOR";
 

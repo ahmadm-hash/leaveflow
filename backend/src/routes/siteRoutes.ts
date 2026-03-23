@@ -10,7 +10,7 @@ router.get("/", siteController.getSites);
 
 router.post(
   "/",
-  authorizeRole("DEPARTMENT_HEAD", "SUPERVISOR"),
+  authorizeRole("DEPARTMENT_HEAD"),
   siteController.createSite
 );
 
