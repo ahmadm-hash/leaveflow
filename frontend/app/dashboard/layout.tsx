@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "../store/authStore";
 import { useRouter } from "next/navigation";
+import { authService } from "../lib/authService";
 
 function NavItem({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
@@ -34,7 +35,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isAuthenticated, logout, hasHydrated } = useAuthStore();
+  const { user, isAuthenticated, logout, hasHydrated, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,6 +46,29 @@ export default function DashboardLayout({
     }
     setLoading(false);
   }, [isAuthenticated, hasHydrated, router]);
+
+  useEffect(() => {
+    if (!hasHydrated || !isAuthenticated) return;
+
+    let isMounted = true;
+
+    const refreshUserProfile = async () => {
+      try {
+        const response = await authService.getProfile();
+        if (isMounted && response?.user) {
+          setUser(response.user);
+        }
+      } catch {
+        // Keep existing user data if profile refresh fails.
+      }
+    };
+
+    void refreshUserProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hasHydrated, isAuthenticated, pathname, setUser]);
 
   if (loading) {
     return (
