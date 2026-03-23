@@ -5,6 +5,10 @@
   "description": "LeaveFlow - Integrated Leave Management System",
   "author": "Your Name",
   "license": "MIT",
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
   "workspaces": [
     "frontend",
     "backend"

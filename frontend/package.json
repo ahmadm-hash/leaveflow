@@ -2,6 +2,10 @@
   "name": "leaveflow-frontend",
   "version": "1.0.0",
   "description": "LeaveFlow - Leave Management System Frontend",
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
