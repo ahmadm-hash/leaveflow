@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -9,6 +9,34 @@ const getInclusiveDays = (startDate: Date, endDate: Date): number => {
   const msPerDay = 1000 * 60 * 60 * 24;
   return Math.floor((endDate.getTime() - startDate.getTime()) / msPerDay) + 1;
 };
+
+const getSupervisedSiteIds = async (supervisorId: string): Promise<string[]> => {
+  const sites = await prisma.site.findMany({
+    where: { supervisorId },
+    select: { id: true },
+  });
+
+  return sites.map((site) => site.id);
+};
+
+const hasDepartmentHeadPrivileges = (req: Request): boolean =>
+  !!req.user && (req.user.role === "ADMIN" || req.user.effectiveRole === "DEPARTMENT_HEAD");
+
+const leaveInclude = {
+  employee: {
+    select: { id: true, fullName: true, username: true },
+  },
+  department: {
+    select: { id: true, name: true },
+  },
+  site: {
+    select: { id: true, name: true },
+  },
+  leaveReview: {
+    select: { id: true, comment: true, reviewedAt: true, role: true },
+    orderBy: { reviewedAt: "desc" },
+  },
+} satisfies Prisma.LeaveRequestInclude;
 
 export const leaveController = {
   createLeaveRequest: async (req: Request, res: Response): Promise<void> => {
@@ -104,11 +132,11 @@ export const leaveController = {
               select: { id: true },
             });
           }
+        }
 
-          if (!department) {
-            res.status(500).json({ message: "Failed to initialize default department" });
-            return;
-          }
+        if (!department) {
+          res.status(500).json({ message: "Failed to initialize default department" });
+          return;
         }
       }
 
@@ -133,20 +161,7 @@ export const leaveController = {
           siteId: employee.siteId,
           departmentId: department.id,
         },
-        include: {
-          department: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          site: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+        include: leaveInclude,
       });
 
       res.status(201).json({
@@ -168,29 +183,7 @@ export const leaveController = {
       const leaveRequests = await prisma.leaveRequest.findMany({
         where: { employeeId: req.user.userId },
         orderBy: { createdAt: "desc" },
-        include: {
-          department: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          site: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          leaveReview: {
-            select: {
-              id: true,
-              comment: true,
-              reviewedAt: true,
-              role: true,
-            },
-            orderBy: { reviewedAt: "desc" },
-          },
-        },
+        include: leaveInclude,
       });
 
       res.json({ leaveRequests });
@@ -214,6 +207,7 @@ export const leaveController = {
           id: true,
           employeeId: true,
           status: true,
+          statusBeforeCancellation: true,
         },
       });
 
@@ -227,18 +221,52 @@ export const leaveController = {
         return;
       }
 
-      if (leaveRequest.status !== "PENDING") {
-        res.status(400).json({ message: "Only pending requests can be cancelled" });
+      if (leaveRequest.status === "PENDING") {
+        const updatedLeaveRequest = await prisma.leaveRequest.update({
+          where: { id: leaveRequestId },
+          data: { status: "CANCELLED" },
+          include: leaveInclude,
+        });
+
+        res.json({
+          message: "Leave request cancelled successfully",
+          leaveRequest: updatedLeaveRequest,
+        });
         return;
       }
 
-      const updatedLeaveRequest = await prisma.leaveRequest.update({
-        where: { id: leaveRequestId },
-        data: { status: "CANCELLED" },
+      if (
+        leaveRequest.status !== "APPROVED_BY_SUPERVISOR" &&
+        leaveRequest.status !== "APPROVED_BY_DEPARTMENT_HEAD"
+      ) {
+        res.status(400).json({ message: "This leave request cannot be cancelled at its current status" });
+        return;
+      }
+
+      const updatedLeaveRequest = await prisma.$transaction(async (tx) => {
+        const updated = await tx.leaveRequest.update({
+          where: { id: leaveRequestId },
+          data: {
+            status: "CANCELLATION_REQUESTED",
+            statusBeforeCancellation: leaveRequest.status,
+          },
+          include: leaveInclude,
+        });
+
+        await tx.leaveReview.create({
+          data: {
+            leaveRequestId,
+            reviewerId: req.user!.userId,
+            role: "EMPLOYEE",
+            comment: "Cancellation requested by employee",
+          },
+        });
+
+        return updated;
       });
 
       res.json({
-        message: "Leave request cancelled successfully",
+        message: "Leave cancellation request submitted successfully",
         leaveRequest: updatedLeaveRequest,
       });
     } catch (error) {
@@ -253,53 +281,25 @@ export const leaveController = {
         return;
       }
 
-      const supervisor = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-        select: {
-          id: true,
-          siteId: true,
-          role: true,
-        },
-      });
+      let whereClause: Prisma.LeaveRequestWhereInput = { status: "PENDING" };
 
-      if (!supervisor) {
-        res.status(404).json({ message: "User not found" });
-        return;
+      if (req.user.role === "SUPERVISOR") {
+        const supervisedSiteIds = await getSupervisedSiteIds(req.user.userId);
+        if (supervisedSiteIds.length === 0) {
+          res.status(400).json({ message: "Supervisor has no supervised sites assigned" });
+          return;
+        }
+
+        whereClause = {
+          status: "PENDING",
+          siteId: { in: supervisedSiteIds },
+        };
       }
-
-      if (!supervisor.siteId && supervisor.role === "SUPERVISOR") {
-        res.status(400).json({ message: "Supervisor has no site assigned" });
-        return;
-      }
-
-      const whereClause = supervisor.role === "SUPERVISOR"
-        ? { siteId: supervisor.siteId!, status: "PENDING" }
-        : { status: "PENDING" };
 
       const leaveRequests = await prisma.leaveRequest.findMany({
         where: whereClause,
         orderBy: { createdAt: "desc" },
-        include: {
-          employee: {
-            select: {
-              id: true,
-              fullName: true,
-              username: true,
-            },
-          },
-          department: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          site: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
+        include: leaveInclude,
       });
 
       res.json({ leaveRequests });
@@ -315,39 +315,22 @@ export const leaveController = {
         return;
       }
 
-      const reviewer = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-        select: { id: true, siteId: true, role: true },
-      });
+      let whereClause: Prisma.LeaveRequestWhereInput = {};
 
-      if (!reviewer) {
-        res.status(404).json({ message: "User not found" });
-        return;
+      if (req.user.role === "SUPERVISOR" && !hasDepartmentHeadPrivileges(req)) {
+        const supervisedSiteIds = await getSupervisedSiteIds(req.user.userId);
+        if (supervisedSiteIds.length === 0) {
+          res.status(400).json({ message: "Supervisor has no supervised sites assigned" });
+          return;
+        }
+
+        whereClause = { siteId: { in: supervisedSiteIds } };
       }
-
-      const whereClause =
-        reviewer.role === "SUPERVISOR" && reviewer.siteId
-          ? { siteId: reviewer.siteId }
-          : {};
 
       const leaveRequests = await prisma.leaveRequest.findMany({
         where: whereClause,
         orderBy: { createdAt: "desc" },
-        include: {
-          employee: {
-            select: { id: true, fullName: true, username: true },
-          },
-          department: {
-            select: { id: true, name: true },
-          },
-          site: {
-            select: { id: true, name: true },
-          },
-          leaveReview: {
-            select: { id: true, comment: true, reviewedAt: true, role: true },
-            orderBy: { reviewedAt: "desc" },
-          },
-        },
+        include: leaveInclude,
       });
 
       res.json({ leaveRequests });
@@ -371,19 +354,18 @@ export const leaveController = {
         return;
       }
 
-      const reviewer = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-        select: { id: true, role: true },
-      });
-
-      if (!reviewer) {
-        res.status(404).json({ message: "Reviewer not found" });
-        return;
-      }
-
       const leaveRequest = await prisma.leaveRequest.findUnique({
         where: { id: leaveRequestId },
-        select: { id: true, status: true, leaveType: true, startDate: true, endDate: true, employeeId: true },
+        select: {
+          id: true,
+          status: true,
+          leaveType: true,
+          startDate: true,
+          endDate: true,
+          employeeId: true,
+          siteId: true,
+          statusBeforeCancellation: true,
+        },
       });
 
       if (!leaveRequest) {
@@ -391,36 +373,87 @@ export const leaveController = {
         return;
       }
 
-      // Determine allowed statuses per role
-      const canReview =
-        (reviewer.role === "SUPERVISOR" && leaveRequest.status === "PENDING") ||
-        (reviewer.role === "DEPARTMENT_HEAD" && leaveRequest.status === "APPROVED_BY_SUPERVISOR") ||
-        (reviewer.role === "ADMIN" &&
-          (leaveRequest.status === "PENDING" || leaveRequest.status === "APPROVED_BY_SUPERVISOR"));
+      const supervisedSiteIds = req.user.role === "SUPERVISOR"
+        ? await getSupervisedSiteIds(req.user.userId)
+        : [];
+      const canActAsDepartmentHead = hasDepartmentHeadPrivileges(req);
+      const canReviewPending = req.user.role === "SUPERVISOR" && supervisedSiteIds.includes(leaveRequest.siteId);
+      const canReviewDepartmentStage =
+        canActAsDepartmentHead && leaveRequest.status === "APPROVED_BY_SUPERVISOR";
+      const canReviewCancellation =
+        canActAsDepartmentHead && leaveRequest.status === "CANCELLATION_REQUESTED";
+      const adminCanAdvance =
+        req.user.role === "ADMIN" &&
+        (leaveRequest.status === "PENDING" || leaveRequest.status === "APPROVED_BY_SUPERVISOR");
 
-      if (!canReview) {
+      if (
+        !(canReviewPending && leaveRequest.status === "PENDING") &&
+        !canReviewDepartmentStage &&
+        !canReviewCancellation &&
+        !adminCanAdvance
+      ) {
         res.status(403).json({
           message: "You are not authorized to review this request at its current status",
         });
         return;
       }
 
-      let newStatus: string;
-      if (action === "reject") {
-        newStatus = "REJECTED";
-      } else if (reviewer.role === "DEPARTMENT_HEAD") {
-        newStatus = "APPROVED_BY_DEPARTMENT_HEAD";
-      } else if (reviewer.role === "SUPERVISOR") {
-        newStatus = "APPROVED_BY_SUPERVISOR";
-      } else {
-        // ADMIN: advance by one step
-        newStatus =
-          leaveRequest.status === "PENDING"
-            ? "APPROVED_BY_SUPERVISOR"
-            : "APPROVED_BY_DEPARTMENT_HEAD";
-      }
+      const reviewRoleLabel = req.user.role === "SUPERVISOR" && canActAsDepartmentHead
+        ? "DEPARTMENT_HEAD"
+        : req.user.role;
 
       await prisma.$transaction(async (tx) => {
+        if (leaveRequest.status === "CANCELLATION_REQUESTED") {
+          const nextStatus = action === "approve"
+            ? "CANCELLED"
+            : leaveRequest.statusBeforeCancellation || "APPROVED_BY_DEPARTMENT_HEAD";
+
+          await tx.leaveRequest.update({
+            where: { id: leaveRequestId },
+            data: {
+              status: nextStatus,
+              statusBeforeCancellation: null,
+            },
+          });
+
+          await tx.leaveReview.create({
+            data: {
+              leaveRequestId,
+              reviewerId: req.user!.userId,
+              role: reviewRoleLabel,
+              comment: comment?.trim() || (action === "approve" ? "Cancellation approved" : "Cancellation rejected"),
+            },
+          });
+
+          if (
+            action === "approve" &&
+            leaveRequest.statusBeforeCancellation === "APPROVED_BY_DEPARTMENT_HEAD" &&
+            leaveRequest.leaveType === "ANNUAL"
+          ) {
+            const days = getInclusiveDays(new Date(leaveRequest.startDate), new Date(leaveRequest.endDate));
+            await tx.user.update({
+              where: { id: leaveRequest.employeeId },
+              data: { annualLeaveBalance: { increment: days } },
+            });
+          }
+
+          return;
+        }
+
+        let newStatus: string;
+        if (action === "reject") {
+          newStatus = "REJECTED";
+        } else if (canActAsDepartmentHead && leaveRequest.status === "APPROVED_BY_SUPERVISOR") {
+          newStatus = "APPROVED_BY_DEPARTMENT_HEAD";
+        } else if (req.user.role === "SUPERVISOR") {
+          newStatus = "APPROVED_BY_SUPERVISOR";
+        } else {
+          newStatus =
+            leaveRequest.status === "PENDING"
+              ? "APPROVED_BY_SUPERVISOR"
+              : "APPROVED_BY_DEPARTMENT_HEAD";
+        }
+
         await tx.leaveRequest.update({
           where: { id: leaveRequestId },
           data: { status: newStatus },
@@ -429,21 +462,14 @@ export const leaveController = {
         await tx.leaveReview.create({
           data: {
             leaveRequestId,
-            reviewerId: reviewer.id,
-            role: reviewer.role,
+            reviewerId: req.user!.userId,
+            role: reviewRoleLabel,
             comment: comment?.trim() || null,
           },
         });
 
-        // Deduct annual leave balance on final approval
-        if (
-          newStatus === "APPROVED_BY_DEPARTMENT_HEAD" &&
-          leaveRequest.leaveType === "ANNUAL"
-        ) {
-          const days = getInclusiveDays(
-            new Date(leaveRequest.startDate),
-            new Date(leaveRequest.endDate)
-          );
+        if (newStatus === "APPROVED_BY_DEPARTMENT_HEAD" && leaveRequest.leaveType === "ANNUAL") {
+          const days = getInclusiveDays(new Date(leaveRequest.startDate), new Date(leaveRequest.endDate));
           await tx.user.update({
             where: { id: leaveRequest.employeeId },
             data: { annualLeaveBalance: { decrement: days } },
@@ -451,7 +477,12 @@ export const leaveController = {
         }
       });
 
-      res.json({ message: `Leave request ${action === "approve" ? "approved" : "rejected"} successfully` });
+      res.json({
+        message:
+          leaveRequest.status === "CANCELLATION_REQUESTED"
+            ? `Leave cancellation ${action === "approve" ? "approved" : "rejected"} successfully`
+            : `Leave request ${action === "approve" ? "approved" : "rejected"} successfully`,
+      });
     } catch (error) {
       res.status(500).json({ message: "Failed to review leave request", error });
     }

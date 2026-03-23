@@ -12,7 +12,7 @@ datasource db {
 
 // Valid UserRole values: EMPLOYEE | SUPERVISOR | DEPARTMENT_HEAD | ADMIN
 // Valid LeaveType values: ANNUAL | SICK | COMPASSIONATE | UNPAID
-// Valid LeaveStatus values: PENDING | APPROVED_BY_SUPERVISOR | APPROVED_BY_DEPARTMENT_HEAD | REJECTED | CANCELLED
+// Valid LeaveStatus values: PENDING | APPROVED_BY_SUPERVISOR | APPROVED_BY_DEPARTMENT_HEAD | CANCELLATION_REQUESTED | REJECTED | CANCELLED
 
 // Site/Location Model
 model Site {
@@ -21,12 +21,14 @@ model Site {
   location     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  supervisorId String?  @unique
+  supervisorId String?
 
   // Relations
   supervisor    User?          @relation("SiteSupervisor", fields: [supervisorId], references: [id])
   employees     User[]         @relation("SiteEmployees")
   leaveRequests LeaveRequest[]
+
+  @@index([supervisorId])
 
   @@map("sites")
 }
@@ -39,6 +41,7 @@ model User {
   password  String   // bcrypt hashed
   fullName  String
   role      String   @default("EMPLOYEE") // EMPLOYEE | SUPERVISOR | DEPARTMENT_HEAD | ADMIN
+  delegatedDepartmentHead Boolean @default(false)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -50,7 +53,7 @@ model User {
   site            Site?          @relation("SiteEmployees", fields: [siteId], references: [id])
   siteId          String?
   leaveRequests   LeaveRequest[] @relation("EmployeeLeaves")
-  supervisedSite  Site?          @relation("SiteSupervisor")
+  supervisedSites Site[]         @relation("SiteSupervisor")
   departmentLeads Department[]   @relation("DepartmentHead")
   leaveReviews    LeaveReview[]  @relation("ReviewerLeaves")
   auditLogs       AuditLog[]
@@ -79,7 +82,8 @@ model LeaveRequest {
   startDate    DateTime
   endDate      DateTime
   leaveType    String   // ANNUAL | SICK | COMPASSIONATE | UNPAID
-  status       String   @default("PENDING") // PENDING | APPROVED_BY_SUPERVISOR | APPROVED_BY_DEPARTMENT_HEAD | REJECTED | CANCELLED
+  status       String   @default("PENDING") // PENDING | APPROVED_BY_SUPERVISOR | APPROVED_BY_DEPARTMENT_HEAD | CANCELLATION_REQUESTED | REJECTED | CANCELLED
+  statusBeforeCancellation String?
   reason       String?
   documentUrl  String?  // For medical reports
   createdAt    DateTime @default(now())

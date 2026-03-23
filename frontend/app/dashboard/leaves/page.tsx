@@ -32,8 +32,8 @@ export default function LeavesPage() {
   const handleCancel = async (id: string) => {
     setCancelling(id);
     try {
-      await leaveService.cancelLeaveRequest(id);
-      toast.success("Leave request cancelled");
+      const response = await leaveService.cancelLeaveRequest(id);
+      toast.success(response.message ?? "Leave request updated");
       await load();
     } catch (err: unknown) {
       const msg =
@@ -140,7 +140,9 @@ export default function LeavesPage() {
                         <StatusBadge status={leave.status} />
                       </td>
                       <td style={tdStyle}>
-                        {leave.status === "PENDING" && (
+                        {(leave.status === "PENDING" ||
+                          leave.status === "APPROVED_BY_SUPERVISOR" ||
+                          leave.status === "APPROVED_BY_DEPARTMENT_HEAD") && (
                           <button
                             onClick={() => handleCancel(leave.id)}
                             disabled={cancelling === leave.id}
@@ -154,7 +156,11 @@ export default function LeavesPage() {
                               fontSize: "12px",
                             }}
                           >
-                            {cancelling === leave.id ? "..." : "Cancel"}
+                            {cancelling === leave.id
+                              ? "..."
+                              : leave.status === "PENDING"
+                                ? "Cancel"
+                                : "Request Cancellation"}
                           </button>
                         )}
                       </td>

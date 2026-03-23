@@ -8,11 +8,17 @@ interface User {
   fullName: string;
   role: "EMPLOYEE" | "SUPERVISOR" | "DEPARTMENT_HEAD" | "ADMIN";
   annualLeaveBalance?: number;
+  delegatedDepartmentHead?: boolean;
   site?: {
     id: string;
     name: string;
     location?: string;
   } | null;
+  supervisedSites?: {
+    id: string;
+    name: string;
+    location?: string;
+  }[];
 }
 
 interface AuthStore {

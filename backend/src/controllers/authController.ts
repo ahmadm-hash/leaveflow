@@ -74,6 +74,7 @@ export const authController = {
           email: user.email,
           fullName: user.fullName,
           role: user.role,
+          delegatedDepartmentHead: user.delegatedDepartmentHead,
           annualLeaveBalance: user.annualLeaveBalance,
         },
       });
@@ -98,9 +99,30 @@ export const authController = {
         return;
       }
 
-      const canResetAnyPassword = req.user.role === "ADMIN" || req.user.role === "DEPARTMENT_HEAD";
+      const canResetAnyPassword = req.user.role === "ADMIN" || req.user.effectiveRole === "DEPARTMENT_HEAD";
       const isSelfReset = req.user.userId === userId;
-      if (!canResetAnyPassword && !isSelfReset) {
+
+      let canSupervisorResetEmployee = false;
+      if (!canResetAnyPassword && !isSelfReset && req.user.role === "SUPERVISOR") {
+        const supervisedSites = await prisma.site.findMany({
+          where: { supervisorId: req.user.userId },
+          select: { id: true },
+        });
+
+        const targetEmployee = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, role: true, siteId: true },
+        });
+
+        const supervisedSiteIds = supervisedSites.map((site) => site.id);
+        canSupervisorResetEmployee =
+          !!targetEmployee &&
+          targetEmployee.role === "EMPLOYEE" &&
+          !!targetEmployee.siteId &&
+          supervisedSiteIds.includes(targetEmployee.siteId);
+      }
+
+      if (!canResetAnyPassword && !isSelfReset && !canSupervisorResetEmployee) {
         res.status(403).json({ message: "Forbidden: You can only reset your own password" });
         return;
       }

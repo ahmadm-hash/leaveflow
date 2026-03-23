@@ -1,35 +1,95 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "../../store/authStore";
 import { leaveService, LeaveRequestItem } from "../../lib/leaveService";
+import { authService, ManagedUser } from "../../lib/authService";
 import { StatusBadge } from "../../components/StatusBadge";
+import { LeaveCalendar } from "../../components/LeaveCalendar";
 
 export default function DashboardHome() {
   const user = useAuthStore((state) => state.user);
   const [leaves, setLeaves] = useState<LeaveRequestItem[]>([]);
+  const [siteLeaves, setSiteLeaves] = useState<LeaveRequestItem[]>([]);
+  const [siteEmployees, setSiteEmployees] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    leaveService
-      .getMyLeaveRequests()
-      .then((data) => setLeaves(data.leaveRequests ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const personalPromise = leaveService.getMyLeaveRequests();
+        const managerPromise =
+          user?.role === "SUPERVISOR"
+            ? Promise.all([leaveService.getAllLeaveRequests(), authService.getSiteEmployees()])
+            : Promise.resolve(null);
+
+        const personal = await personalPromise;
+        if (!isMounted) return;
+        setLeaves(personal.leaveRequests ?? []);
+
+        if (managerPromise) {
+          const managerData = await managerPromise;
+          if (!isMounted || !managerData) return;
+          setSiteLeaves(managerData[0].leaveRequests ?? []);
+          setSiteEmployees(managerData[1].users ?? []);
+        }
+      } catch {
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.role]);
 
   const stats = {
     total: leaves.length,
-    pending: leaves.filter((l) => l.status === "PENDING").length,
-    approved: leaves.filter((l) => l.status === "APPROVED_BY_DEPARTMENT_HEAD").length,
-    rejected: leaves.filter((l) => l.status === "REJECTED").length,
+    pending: leaves.filter((leave) => leave.status === "PENDING").length,
+    approved: leaves.filter((leave) => leave.status === "APPROVED_BY_DEPARTMENT_HEAD").length,
+    rejected: leaves.filter((leave) => leave.status === "REJECTED").length,
   };
 
   const recentLeaves = leaves.slice(0, 5);
-
   const isManager =
     user?.role === "SUPERVISOR" || user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
+  const actsAsDepartmentHead = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead;
+
+  const attendancePercentage = useMemo(() => {
+    if (user?.role !== "SUPERVISOR" || siteEmployees.length === 0) {
+      return null;
+    }
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const totalEmployeeDays = siteEmployees.length * monthEnd.getDate();
+
+    if (totalEmployeeDays === 0) {
+      return 0;
+    }
+
+    const approvedStatuses = new Set(["APPROVED_BY_SUPERVISOR", "APPROVED_BY_DEPARTMENT_HEAD"]);
+    let leaveDays = 0;
+
+    for (const leave of siteLeaves) {
+      if (!approvedStatuses.has(leave.status)) continue;
+      const start = new Date(Math.max(new Date(leave.startDate).getTime(), monthStart.getTime()));
+      const end = new Date(Math.min(new Date(leave.endDate).getTime(), monthEnd.getTime()));
+      if (end < start) continue;
+      leaveDays += Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
+    }
+
+    return Math.max(0, Math.round(((totalEmployeeDays - leaveDays) / totalEmployeeDays) * 100));
+  }, [siteEmployees, siteLeaves, user?.role]);
 
   const roleColors: Record<string, string> = {
     EMPLOYEE: "#007bff",
@@ -41,7 +101,6 @@ export default function DashboardHome() {
 
   return (
     <div>
-      {/* Welcome */}
       <div
         style={{
           background: `linear-gradient(135deg, ${roleColor}18 0%, #ffffff 100%)`,
@@ -55,29 +114,23 @@ export default function DashboardHome() {
           Welcome back, {user?.fullName?.split(" ")[0]}!
         </h1>
         <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
-          {user?.role} {user?.site ? `· ${user.site.name}` : ""}
+          {user?.role}
+          {user?.delegatedDepartmentHead ? " · Delegated Department Head" : ""}
+          {user?.site ? ` · ${user.site.name}` : ""}
         </p>
-        {user?.annualLeaveBalance !== undefined && (
-          <div
-            style={{
-              backgroundColor: "white",
-              border: "1px solid #e0e0e0",
-              borderRadius: "8px",
-              padding: "12px 20px",
-              textAlign: "center",
-              display: "inline-block",
-              minWidth: "140px",
-            }}
-          >
-            <div style={{ fontSize: "26px", fontWeight: "700", color: "#28a745" }}>
-              {user.annualLeaveBalance}
-            </div>
-            <div style={{ fontSize: "12px", color: "#666" }}>Annual leave days left</div>
-          </div>
-        )}
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          {user?.annualLeaveBalance !== undefined && (
+            <MetricChip label="Annual Leave Left" value={`${user.annualLeaveBalance}`} color="#28a745" />
+          )}
+          {attendancePercentage !== null && (
+            <MetricChip label="Monthly Presence" value={`${attendancePercentage}%`} color="#0d6efd" />
+          )}
+          {actsAsDepartmentHead && (
+            <MetricChip label="Delegated Authority" value="Enabled" color="#fd7e14" />
+          )}
+        </div>
       </div>
 
-      {/* Quick Actions */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontSize: "15px", color: "#555", margin: "0 0 12px 0", fontWeight: "600" }}>
           Quick Actions
@@ -91,7 +144,6 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
         <StatCard label="Total Requests" value={stats.total} color="#6c757d" />
         <StatCard label="Pending" value={stats.pending} color="#ffc107" />
@@ -99,7 +151,24 @@ export default function DashboardHome() {
         <StatCard label="Rejected" value={stats.rejected} color="#dc3545" />
       </div>
 
-      {/* Recent Leaves */}
+      <div style={{ display: "grid", gap: "24px", marginBottom: "24px" }}>
+        <LeaveCalendar
+          title="My Interactive Calendar"
+          leaves={leaves}
+          emptyMessage="اختر يوماً من التقويم لمراجعة إجازاتك الشخصية."
+          accentColor={roleColor}
+        />
+
+        {user?.role === "SUPERVISOR" && (
+          <LeaveCalendar
+            title="Site Interactive Calendar"
+            leaves={siteLeaves}
+            emptyMessage="اختر يوماً لمراجعة إجازات موظفي السايت الذي تشرف عليه."
+            accentColor="#6f42c1"
+          />
+        )}
+      </div>
+
       <div
         style={{
           backgroundColor: "white",
@@ -142,9 +211,9 @@ export default function DashboardHome() {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
             <thead>
               <tr>
-                {["Type", "Start", "End", "Status"].map((h) => (
+                {["Type", "Start", "End", "Status"].map((header) => (
                   <th
-                    key={h}
+                    key={header}
                     style={{
                       padding: "8px 12px",
                       textAlign: "left",
@@ -155,7 +224,7 @@ export default function DashboardHome() {
                       textTransform: "uppercase" as const,
                     }}
                   >
-                    {h}
+                    {header}
                   </th>
                 ))}
               </tr>
@@ -214,6 +283,23 @@ function StatCard({ label, value, color }: { label: string; value: number; color
     >
       <div style={{ fontSize: "26px", fontWeight: "700", color }}>{value}</div>
       <div style={{ fontSize: "12px", color: "#666", marginTop: "3px" }}>{label}</div>
+    </div>
+  );
+}
+
+function MetricChip({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div
+      style={{
+        backgroundColor: "white",
+        border: `1px solid ${color}30`,
+        borderRadius: "10px",
+        padding: "10px 14px",
+        minWidth: "140px",
+      }}
+    >
+      <div style={{ fontSize: "11px", color: "#777", marginBottom: "4px" }}>{label}</div>
+      <div style={{ fontSize: "20px", fontWeight: 700, color }}>{value}</div>
     </div>
   );
 }

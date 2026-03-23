@@ -8,7 +8,7 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { Alert } from "../../components/Alert";
 import { toast, Toaster } from "sonner";
 
-type FilterStatus = "all" | "PENDING" | "APPROVED_BY_SUPERVISOR";
+type FilterStatus = "all" | "PENDING" | "APPROVED_BY_SUPERVISOR" | "CANCELLATION_REQUESTED";
 
 export default function ManageLeavesPage() {
   const user = useAuthStore((s) => s.user);
@@ -37,8 +37,12 @@ export default function ManageLeavesPage() {
 
   const canReview = (status: string) => {
     if (user?.role === "SUPERVISOR") return status === "PENDING";
-    if (user?.role === "DEPARTMENT_HEAD") return status === "APPROVED_BY_SUPERVISOR";
-    if (user?.role === "ADMIN") return status === "PENDING" || status === "APPROVED_BY_SUPERVISOR";
+    if (user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead) {
+      return status === "APPROVED_BY_SUPERVISOR" || status === "CANCELLATION_REQUESTED";
+    }
+    if (user?.role === "ADMIN") {
+      return status === "PENDING" || status === "APPROVED_BY_SUPERVISOR" || status === "CANCELLATION_REQUESTED";
+    }
     return false;
   };
 
@@ -67,6 +71,7 @@ export default function ManageLeavesPage() {
   const stats = {
     pending: leaves.filter((l) => l.status === "PENDING").length,
     awaitingDept: leaves.filter((l) => l.status === "APPROVED_BY_SUPERVISOR").length,
+    cancellationRequests: leaves.filter((l) => l.status === "CANCELLATION_REQUESTED").length,
     fullyApproved: leaves.filter((l) => l.status === "APPROVED_BY_DEPARTMENT_HEAD").length,
     rejected: leaves.filter((l) => l.status === "REJECTED").length,
   };
@@ -77,9 +82,10 @@ export default function ManageLeavesPage() {
       <h1 style={{ color: "#333", fontSize: "24px", marginBottom: "24px" }}>Manage Leave Requests</h1>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "16px", marginBottom: "24px" }}>
         <StatBox label="Pending" value={stats.pending} color="#ffc107" />
         <StatBox label="Awaiting Dept. Head" value={stats.awaitingDept} color="#17a2b8" />
+        <StatBox label="Cancellation Requests" value={stats.cancellationRequests} color="#fd7e14" />
         <StatBox label="Fully Approved" value={stats.fullyApproved} color="#28a745" />
         <StatBox label="Rejected" value={stats.rejected} color="#dc3545" />
       </div>
@@ -88,7 +94,7 @@ export default function ManageLeavesPage() {
 
       {/* Filter tabs */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-        {(["all", "PENDING", "APPROVED_BY_SUPERVISOR"] as FilterStatus[]).map((f) => (
+        {(["all", "PENDING", "APPROVED_BY_SUPERVISOR", "CANCELLATION_REQUESTED"] as FilterStatus[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -104,7 +110,13 @@ export default function ManageLeavesPage() {
               fontWeight: filter === f ? "600" : "400",
             }}
           >
-            {f === "all" ? "All" : f === "PENDING" ? "Pending" : "Awaiting Dept. Head"}
+            {f === "all"
+              ? "All"
+              : f === "PENDING"
+                ? "Pending"
+                : f === "APPROVED_BY_SUPERVISOR"
+                  ? "Awaiting Dept. Head"
+                  : "Cancellation Requests"}
           </button>
         ))}
       </div>
@@ -205,6 +217,11 @@ export default function ManageLeavesPage() {
                                   <strong>Reason:</strong> {leave.reason}
                                 </div>
                               )}
+                              {leave.status === "CANCELLATION_REQUESTED" && (
+                                <div style={{ fontSize: "13px", color: "#856404" }}>
+                                  <strong>Notice:</strong> Employee requested cancellation after approval.
+                                </div>
+                              )}
                               <textarea
                                 placeholder="Add a comment (optional)..."
                                 value={comment}
@@ -235,7 +252,11 @@ export default function ManageLeavesPage() {
                                     fontWeight: "500",
                                   }}
                                 >
-                                  {submitting ? "..." : "✓ Approve"}
+                                  {submitting
+                                    ? "..."
+                                    : leave.status === "CANCELLATION_REQUESTED"
+                                      ? "✓ Approve Cancellation"
+                                      : "✓ Approve"}
                                 </button>
                                 <button
                                   onClick={() => handleReview(leave.id, "reject")}
@@ -251,7 +272,11 @@ export default function ManageLeavesPage() {
                                     fontWeight: "500",
                                   }}
                                 >
-                                  {submitting ? "..." : "✗ Reject"}
+                                  {submitting
+                                    ? "..."
+                                    : leave.status === "CANCELLATION_REQUESTED"
+                                      ? "✗ Reject Cancellation"
+                                      : "✗ Reject"}
                                 </button>
                               </div>
                             </div>

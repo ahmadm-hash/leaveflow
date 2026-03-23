@@ -12,8 +12,9 @@ export interface LeaveRequestItem {
   id: string;
   startDate: string;
   endDate: string;
-  leaveType: "ANNUAL" | "SICK" | "COMPASSIONATE" | "UNPAID";
+  leaveType: "ANNUAL" | "SICK" | "UNPAID";
   status: string;
+  statusBeforeCancellation?: string | null;
   reason?: string;
   documentUrl?: string;
   createdAt?: string;

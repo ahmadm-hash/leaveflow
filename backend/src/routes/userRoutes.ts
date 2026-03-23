@@ -41,6 +41,24 @@ router.post(
 );
 
 router.put(
+  "/supervisor-access",
+  authorizeRole("ADMIN", "DEPARTMENT_HEAD"),
+  userController.toggleSupervisorAccess
+);
+
+router.put(
+  "/supervisor-sites",
+  authorizeRole("ADMIN", "DEPARTMENT_HEAD"),
+  userController.assignSupervisorSites
+);
+
+router.put(
+  "/department-head-delegation",
+  authorizeRole("ADMIN", "DEPARTMENT_HEAD"),
+  userController.setDepartmentHeadDelegation
+);
+
+router.put(
   "/:userId/deactivate",
   authorizeRole("ADMIN", "DEPARTMENT_HEAD"),
   userController.deactivateUser

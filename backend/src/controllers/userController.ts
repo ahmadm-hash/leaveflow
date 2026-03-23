@@ -5,8 +5,43 @@ import { hashPassword } from "../utils/password";
 const prisma = new PrismaClient();
 const VALID_ROLES = ["EMPLOYEE", "SUPERVISOR", "DEPARTMENT_HEAD", "ADMIN"] as const;
 
+const getSupervisedSiteIds = async (supervisorId: string): Promise<string[]> => {
+  const sites = await prisma.site.findMany({
+    where: { supervisorId },
+    select: { id: true },
+    orderBy: { name: "asc" },
+  });
+
+  return sites.map((site) => site.id);
+};
+
+const userSelect = {
+  id: true,
+  email: true,
+  username: true,
+  fullName: true,
+  role: true,
+  isActive: true,
+  annualLeaveBalance: true,
+  delegatedDepartmentHead: true,
+  site: {
+    select: {
+      id: true,
+      name: true,
+      location: true,
+    },
+  },
+  supervisedSites: {
+    select: {
+      id: true,
+      name: true,
+      location: true,
+    },
+    orderBy: { name: "asc" },
+  },
+} satisfies Prisma.UserSelect;
+
 export const userController = {
-  // Get current user profile
   getProfile: async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
@@ -16,21 +51,7 @@ export const userController = {
 
       const user = await prisma.user.findUnique({
         where: { id: req.user.userId },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          fullName: true,
-          role: true,
-          annualLeaveBalance: true,
-          site: {
-            select: {
-              id: true,
-              name: true,
-              location: true,
-            },
-          },
-        },
+        select: userSelect,
       });
 
       res.json({ user });
@@ -39,7 +60,6 @@ export const userController = {
     }
   },
 
-  // Update user profile
   updateProfile: async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
@@ -47,7 +67,7 @@ export const userController = {
         return;
       }
 
-      const { fullName, email } = req.body;
+      const { fullName, email } = req.body as { fullName?: string; email?: string };
 
       const updatedUser = await prisma.user.update({
         where: { id: req.user.userId },
@@ -55,13 +75,7 @@ export const userController = {
           ...(fullName && { fullName }),
           ...(email && { email }),
         },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          fullName: true,
-          role: true,
-        },
+        select: userSelect,
       });
 
       res.json({
@@ -73,25 +87,10 @@ export const userController = {
     }
   },
 
-  // Get all users (Department Head & Admin)
-  getAllUsers: async (req: Request, res: Response): Promise<void> => {
+  getAllUsers: async (_req: Request, res: Response): Promise<void> => {
     try {
       const users = await prisma.user.findMany({
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          fullName: true,
-          role: true,
-          isActive: true,
-          site: {
-            select: {
-              id: true,
-              name: true,
-              location: true,
-            },
-          },
-        },
+        select: userSelect,
         orderBy: { createdAt: "desc" },
       });
 
@@ -101,7 +100,6 @@ export const userController = {
     }
   },
 
-  // Get users by site (Supervisor only)
   getUsersBySite: async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
@@ -109,30 +107,20 @@ export const userController = {
         return;
       }
 
-      // Get supervisor's site
-      const supervisor = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-      });
+      const supervisedSiteIds = await getSupervisedSiteIds(req.user.userId);
 
-      if (!supervisor?.siteId) {
-        res.status(400).json({ message: "Supervisor has no site assigned" });
+      if (supervisedSiteIds.length === 0) {
+        res.status(400).json({ message: "Supervisor has no supervised sites assigned" });
         return;
       }
 
       const users = await prisma.user.findMany({
         where: {
-          siteId: supervisor.siteId,
+          siteId: { in: supervisedSiteIds },
           role: "EMPLOYEE",
         },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          fullName: true,
-          role: true,
-          isActive: true,
-          annualLeaveBalance: true,
-        },
+        select: userSelect,
+        orderBy: { fullName: "asc" },
       });
 
       res.json({ users });
@@ -141,7 +129,6 @@ export const userController = {
     }
   },
 
-  // Create user with role-based restrictions
   createUser: async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
@@ -173,8 +160,8 @@ export const userController = {
         select: {
           id: true,
           role: true,
-          siteId: true,
           isActive: true,
+          delegatedDepartmentHead: true,
         },
       });
 
@@ -183,50 +170,40 @@ export const userController = {
         return;
       }
 
-      let assignedSiteId = siteId?.trim();
+      const creatorActsAsDepartmentHead =
+        creator.role === "DEPARTMENT_HEAD" ||
+        creator.role === "ADMIN" ||
+        (creator.role === "SUPERVISOR" && creator.delegatedDepartmentHead);
 
-      if (creator.role === "SUPERVISOR") {
+      let assignedSiteId = siteId?.trim() || undefined;
+
+      if (creator.role === "SUPERVISOR" && !creator.delegatedDepartmentHead) {
         if (role !== "EMPLOYEE") {
           res.status(403).json({ message: "Supervisors can only create employee accounts" });
           return;
         }
 
-        if (!creator.siteId) {
-          res.status(400).json({ message: "Supervisor must be assigned to a site before creating employees" });
+        const supervisedSiteIds = await getSupervisedSiteIds(creator.id);
+        if (supervisedSiteIds.length === 0) {
+          res.status(400).json({ message: "Supervisor must supervise at least one site before creating employees" });
           return;
         }
 
-        const supervisedSite = await prisma.site.findFirst({
-          where: {
-            id: creator.siteId,
-            supervisorId: creator.id,
-          },
-          select: { id: true },
-        });
-
-        if (!supervisedSite) {
-          res.status(403).json({
-            message: "Only supervisors assigned by the department head can create employee accounts",
-          });
-          return;
-        }
-
-        assignedSiteId = creator.siteId;
-      }
-
-      if (creator.role === "DEPARTMENT_HEAD") {
-        if (role !== "SUPERVISOR") {
-          res.status(403).json({ message: "Department heads can only create supervisor accounts" });
-          return;
-        }
-
-        if (!assignedSiteId) {
-          res.status(400).json({ message: "Site ID is required when creating a supervisor" });
+        assignedSiteId = assignedSiteId || supervisedSiteIds[0];
+        if (!assignedSiteId || !supervisedSiteIds.includes(assignedSiteId)) {
+          res.status(403).json({ message: "You can only create employees for your supervised sites" });
           return;
         }
       }
 
-      if (creator.role === "ADMIN" && (role === "EMPLOYEE" || role === "SUPERVISOR") && !assignedSiteId) {
+      if (creatorActsAsDepartmentHead && creator.role !== "ADMIN") {
+        if (role !== "EMPLOYEE" && role !== "SUPERVISOR") {
+          res.status(403).json({ message: "Department head privileges can only create employee or supervisor accounts" });
+          return;
+        }
+      }
+
+      if ((role === "EMPLOYEE" || role === "SUPERVISOR") && !assignedSiteId) {
         res.status(400).json({ message: "Site ID is required for employee and supervisor accounts" });
         return;
       }
@@ -270,22 +247,9 @@ export const userController = {
             fullName,
             role,
             siteId: assignedSiteId,
+            delegatedDepartmentHead: false,
           },
-          select: {
-            id: true,
-            email: true,
-            username: true,
-            fullName: true,
-            role: true,
-            isActive: true,
-            site: {
-              select: {
-                id: true,
-                name: true,
-                location: true,
-              },
-            },
-          },
+          select: userSelect,
         });
 
         if (role === "SUPERVISOR" && assignedSiteId) {
@@ -307,14 +271,20 @@ export const userController = {
     }
   },
 
-  // Deactivate user
   deactivateUser: async (req: Request, res: Response): Promise<void> => {
     try {
       const { userId } = req.params;
 
-      await prisma.user.update({
-        where: { id: userId },
-        data: { isActive: false },
+      await prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
+        await transaction.user.update({
+          where: { id: userId },
+          data: { isActive: false, delegatedDepartmentHead: false },
+        });
+
+        await transaction.site.updateMany({
+          where: { supervisorId: userId },
+          data: { supervisorId: null },
+        });
       });
 
       res.json({ message: "User deactivated successfully" });
@@ -323,28 +293,77 @@ export const userController = {
     }
   },
 
-  // Promote user to supervisor
   promoteToSupervisor: async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { userId, siteId } = req.body;
+    req.body.enabled = true;
+    await userController.toggleSupervisorAccess(req, res);
+  },
 
-      if (!userId || !siteId) {
-        res.status(400).json({ message: "Missing required fields" });
+  toggleSupervisorAccess: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { userId, enabled, primarySiteId } = req.body as {
+        userId?: string;
+        enabled?: boolean;
+        primarySiteId?: string;
+      };
+
+      if (!userId || typeof enabled !== "boolean") {
+        res.status(400).json({ message: "userId and enabled are required" });
         return;
       }
 
-      const site = await prisma.site.findUnique({
-        where: { id: siteId },
-        select: { id: true, supervisorId: true },
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true, siteId: true, isActive: true },
       });
 
-      if (!site) {
-        res.status(400).json({ message: "Invalid site ID" });
+      if (!targetUser || !targetUser.isActive) {
+        res.status(404).json({ message: "User not found or inactive" });
         return;
       }
 
-      if (site.supervisorId && site.supervisorId !== userId) {
-        res.status(400).json({ message: "This site already has an assigned supervisor" });
+      if (targetUser.role === "ADMIN" || targetUser.role === "DEPARTMENT_HEAD") {
+        res.status(400).json({ message: "This user role cannot be changed with supervisor access toggle" });
+        return;
+      }
+
+      if (enabled) {
+        const resolvedPrimarySiteId = primarySiteId?.trim() || targetUser.siteId;
+        if (!resolvedPrimarySiteId) {
+          res.status(400).json({ message: "Primary site is required when enabling supervisor access" });
+          return;
+        }
+
+        const site = await prisma.site.findUnique({
+          where: { id: resolvedPrimarySiteId },
+          select: { id: true, supervisorId: true },
+        });
+
+        if (!site) {
+          res.status(400).json({ message: "Invalid site ID" });
+          return;
+        }
+
+        if (site.supervisorId && site.supervisorId !== userId) {
+          res.status(400).json({ message: "This site already has an assigned supervisor" });
+          return;
+        }
+
+        await prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
+          await transaction.user.update({
+            where: { id: userId },
+            data: {
+              role: "SUPERVISOR",
+              siteId: resolvedPrimarySiteId,
+            },
+          });
+
+          await transaction.site.update({
+            where: { id: resolvedPrimarySiteId },
+            data: { supervisorId: userId },
+          });
+        });
+
+        res.json({ message: "Supervisor access enabled successfully" });
         return;
       }
 
@@ -352,22 +371,125 @@ export const userController = {
         await transaction.user.update({
           where: { id: userId },
           data: {
-            role: "SUPERVISOR",
-            siteId,
+            role: "EMPLOYEE",
+            delegatedDepartmentHead: false,
           },
         });
 
-        await transaction.site.update({
-          where: { id: siteId },
-          data: { supervisorId: userId },
+        await transaction.site.updateMany({
+          where: { supervisorId: userId },
+          data: { supervisorId: null },
         });
       });
 
-      res.json({ message: "User promoted to supervisor successfully" });
+      res.json({ message: "Supervisor access removed successfully" });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Failed to promote user", error });
+      res.status(500).json({ message: "Failed to update supervisor access", error });
+    }
+  },
+
+  assignSupervisorSites: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { userId, siteIds } = req.body as { userId?: string; siteIds?: string[] };
+
+      if (!userId || !Array.isArray(siteIds)) {
+        res.status(400).json({ message: "userId and siteIds are required" });
+        return;
+      }
+
+      const normalizedSiteIds = Array.from(new Set(siteIds.map((siteId) => siteId.trim()).filter(Boolean)));
+
+      const supervisor = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true, siteId: true },
+      });
+
+      if (!supervisor || supervisor.role !== "SUPERVISOR") {
+        res.status(400).json({ message: "Target user must be a supervisor" });
+        return;
+      }
+
+      if (normalizedSiteIds.length > 0) {
+        const conflictingSites = await prisma.site.findMany({
+          where: {
+            id: { in: normalizedSiteIds },
+            NOT: { OR: [{ supervisorId: null }, { supervisorId: userId }] },
+          },
+          select: { name: true },
+        });
+
+        if (conflictingSites.length > 0) {
+          res.status(400).json({
+            message: `Some sites already have other supervisors assigned: ${conflictingSites.map((site) => site.name).join(", ")}`,
+          });
+          return;
+        }
+      }
+
+      await prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
+        await transaction.site.updateMany({
+          where: {
+            supervisorId: userId,
+            ...(normalizedSiteIds.length > 0 ? { id: { notIn: normalizedSiteIds } } : {}),
+          },
+          data: { supervisorId: null },
+        });
+
+        if (normalizedSiteIds.length > 0) {
+          await transaction.site.updateMany({
+            where: { id: { in: normalizedSiteIds } },
+            data: { supervisorId: userId },
+          });
+        }
+
+        await transaction.user.update({
+          where: { id: userId },
+          data: { siteId: normalizedSiteIds[0] ?? null },
+        });
+      });
+
+      res.json({ message: "Supervisor sites updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update supervisor sites", error });
+    }
+  },
+
+  setDepartmentHeadDelegation: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { userId, enabled } = req.body as { userId?: string; enabled?: boolean };
+
+      if (!userId || typeof enabled !== "boolean") {
+        res.status(400).json({ message: "userId and enabled are required" });
+        return;
+      }
+
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true, isActive: true },
+      });
+
+      if (!targetUser || !targetUser.isActive) {
+        res.status(404).json({ message: "User not found or inactive" });
+        return;
+      }
+
+      if (targetUser.role !== "SUPERVISOR") {
+        res.status(400).json({ message: "Only supervisors can receive department head delegation" });
+        return;
+      }
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { delegatedDepartmentHead: enabled },
+      });
+
+      res.json({
+        message: enabled
+          ? "Department head delegation granted successfully"
+          : "Department head delegation removed successfully",
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update department head delegation", error });
     }
   },
 };

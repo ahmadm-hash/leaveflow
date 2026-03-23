@@ -17,6 +17,12 @@ interface UpdateProfilePayload {
   fullName?: string;
 }
 
+interface ManagedSite {
+  id: string;
+  name: string;
+  location?: string;
+}
+
 export interface ManagedUser {
   id: string;
   email: string;
@@ -25,11 +31,13 @@ export interface ManagedUser {
   role: "EMPLOYEE" | "SUPERVISOR" | "DEPARTMENT_HEAD" | "ADMIN";
   isActive?: boolean;
   annualLeaveBalance?: number;
+  delegatedDepartmentHead?: boolean;
   site?: {
     id: string;
     name: string;
     location?: string;
   } | null;
+  supervisedSites?: ManagedSite[];
 }
 
 export interface ManagedUserPayload extends RegisterPayload {
@@ -75,6 +83,26 @@ export const authService = {
 
   async deactivateUser(userId: string): Promise<{ message: string }> {
     const response = await getApiClient().put(`/users/${userId}/deactivate`);
+    return response.data;
+  },
+
+  async toggleSupervisorAccess(payload: { userId: string; enabled: boolean; primarySiteId?: string }) {
+    const response = await getApiClient().put("/users/supervisor-access", payload);
+    return response.data;
+  },
+
+  async assignSupervisorSites(payload: { userId: string; siteIds: string[] }) {
+    const response = await getApiClient().put("/users/supervisor-sites", payload);
+    return response.data;
+  },
+
+  async setDepartmentHeadDelegation(payload: { userId: string; enabled: boolean }) {
+    const response = await getApiClient().put("/users/department-head-delegation", payload);
+    return response.data;
+  },
+
+  async resetPassword(userId: string, newPassword: string) {
+    const response = await getApiClient().post(`/auth/reset-password/${userId}`, { newPassword });
     return response.data;
   },
 

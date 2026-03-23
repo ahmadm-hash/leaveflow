@@ -86,6 +86,8 @@ export default function DashboardLayout({
 
   const isManager =
     user?.role === "SUPERVISOR" || user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
+  const canUseDepartmentHeadTools =
+    user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN" || user?.delegatedDepartmentHead;
 
   const roleColors: Record<string, string> = {
     EMPLOYEE: "#007bff",
@@ -172,7 +174,9 @@ export default function DashboardLayout({
                 Management
               </div>
               <NavItem href="/dashboard/manage" label="✅ Review Leaves" active={pathname === "/dashboard/manage"} />
-              <NavItem href="/dashboard/users" label="👥 Users" active={pathname === "/dashboard/users"} />
+              {canUseDepartmentHeadTools && (
+                <NavItem href="/dashboard/users" label="👥 Users" active={pathname === "/dashboard/users"} />
+              )}
             </>
           )}
         </nav>
