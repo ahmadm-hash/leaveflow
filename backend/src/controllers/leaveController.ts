@@ -75,19 +75,31 @@ export const leaveController = {
         return;
       }
 
-      const department = departmentId
-        ? await prisma.department.findUnique({
-            where: { id: departmentId },
-            select: { id: true },
-          })
-        : await prisma.department.findFirst({
-            select: { id: true },
-            orderBy: { name: "asc" },
-          });
+      let department;
+      if (departmentId) {
+        department = await prisma.department.findUnique({
+          where: { id: departmentId },
+          select: { id: true },
+        });
 
-      if (!department) {
-        res.status(404).json({ message: "No department found. Please contact admin." });
-        return;
+        if (!department) {
+          res.status(404).json({ message: "Department not found" });
+          return;
+        }
+      } else {
+        department = await prisma.department.findFirst({
+          select: { id: true },
+          orderBy: { name: "asc" },
+        });
+
+        if (!department) {
+          department = await prisma.department.upsert({
+            where: { name: "General" },
+            update: {},
+            create: { name: "General" },
+            select: { id: true },
+          });
+        }
       }
 
       const requestedDays = getInclusiveDays(parsedStartDate, parsedEndDate);
