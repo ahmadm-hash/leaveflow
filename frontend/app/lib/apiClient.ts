@@ -1,17 +1,32 @@
 import axios, { AxiosInstance } from "axios";
 import { useAuthStore } from "../store/authStore";
 
+const isLocalAddress = (url: string): boolean => /localhost|127\.0\.0\.1/i.test(url);
+
 const resolveApiUrl = (): string => {
-  const configuredUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (configuredUrl) {
+  const configuredUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+  if (typeof window !== "undefined") {
+    const isLocalFrontend =
+      window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+
+    // In production, ignore a misconfigured localhost API URL.
+    if (configuredUrl && !(isLocalAddress(configuredUrl) && !isLocalFrontend)) {
+      return configuredUrl;
+    }
+
+    if (!isLocalFrontend) {
+      return `${window.location.origin}/api`;
+    }
+
+    return "http://localhost:5000/api";
+  }
+
+  if (configuredUrl && !isLocalAddress(configuredUrl)) {
     return configuredUrl;
   }
 
-  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
-    return `${window.location.origin}/api`;
-  }
-
-  return "http://localhost:5000/api";
+  return configuredUrl || "http://localhost:5000/api";
 };
 
 const API_URL = resolveApiUrl();
