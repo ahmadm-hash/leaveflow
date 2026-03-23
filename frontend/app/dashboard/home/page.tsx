@@ -11,9 +11,12 @@ import { LeaveCalendar } from "../../components/LeaveCalendar";
 export default function DashboardHome() {
   const user = useAuthStore((state) => state.user);
   const [leaves, setLeaves] = useState<LeaveRequestItem[]>([]);
-  const [siteLeaves, setSiteLeaves] = useState<LeaveRequestItem[]>([]);
-  const [siteEmployees, setSiteEmployees] = useState<ManagedUser[]>([]);
+  const [managedLeaves, setManagedLeaves] = useState<LeaveRequestItem[]>([]);
+  const [managedEmployees, setManagedEmployees] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const actsAsDepartmentHead = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead;
+  const canViewPresence =
+    user?.role === "SUPERVISOR" || actsAsDepartmentHead || user?.role === "ADMIN";
 
   useEffect(() => {
     let isMounted = true;
@@ -21,10 +24,11 @@ export default function DashboardHome() {
     const load = async () => {
       try {
         const personalPromise = leaveService.getMyLeaveRequests();
-        const managerPromise =
-          user?.role === "SUPERVISOR"
-            ? Promise.all([leaveService.getAllLeaveRequests(), authService.getSiteEmployees()])
-            : Promise.resolve(null);
+        const managerPromise = !canViewPresence
+          ? Promise.resolve(null)
+          : actsAsDepartmentHead || user?.role === "ADMIN"
+            ? Promise.all([leaveService.getAllLeaveRequests(), authService.getAllUsers()])
+            : Promise.all([leaveService.getAllLeaveRequests(), authService.getSiteEmployees()]);
 
         const personal = await personalPromise;
         if (!isMounted) return;
@@ -33,8 +37,12 @@ export default function DashboardHome() {
         if (managerPromise) {
           const managerData = await managerPromise;
           if (!isMounted || !managerData) return;
-          setSiteLeaves(managerData[0].leaveRequests ?? []);
-          setSiteEmployees(managerData[1].users ?? []);
+          setManagedLeaves(managerData[0].leaveRequests ?? []);
+          setManagedEmployees(
+            (managerData[1].users ?? []).filter(
+              (managedUser) => managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && !!managedUser.site
+            )
+          );
         }
       } catch {
       } finally {
@@ -49,7 +57,7 @@ export default function DashboardHome() {
     return () => {
       isMounted = false;
     };
-  }, [user?.role]);
+  }, [actsAsDepartmentHead, canViewPresence, user?.role]);
 
   const stats = {
     total: leaves.length,
@@ -61,35 +69,36 @@ export default function DashboardHome() {
   const recentLeaves = leaves.slice(0, 5);
   const isManager =
     user?.role === "SUPERVISOR" || user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
-  const actsAsDepartmentHead = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead;
 
-  const attendancePercentage = useMemo(() => {
-    if (user?.role !== "SUPERVISOR" || siteEmployees.length === 0) {
+  const weeklyPresencePercentage = useMemo(() => {
+    if (!canViewPresence || managedEmployees.length === 0) {
+      return null;
+    }
+
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setDate(now.getDate() - now.getDay());
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    return calculatePresencePercentage(managedEmployees, managedLeaves, weekStart, weekEnd);
+  }, [canViewPresence, managedEmployees, managedLeaves]);
+
+  const monthlyPresencePercentage = useMemo(() => {
+    if (!canViewPresence || managedEmployees.length === 0) {
       return null;
     }
 
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const totalEmployeeDays = siteEmployees.length * monthEnd.getDate();
+    monthEnd.setHours(23, 59, 59, 999);
 
-    if (totalEmployeeDays === 0) {
-      return 0;
-    }
-
-    const approvedStatuses = new Set(["APPROVED_BY_SUPERVISOR", "APPROVED_BY_DEPARTMENT_HEAD"]);
-    let leaveDays = 0;
-
-    for (const leave of siteLeaves) {
-      if (!approvedStatuses.has(leave.status)) continue;
-      const start = new Date(Math.max(new Date(leave.startDate).getTime(), monthStart.getTime()));
-      const end = new Date(Math.min(new Date(leave.endDate).getTime(), monthEnd.getTime()));
-      if (end < start) continue;
-      leaveDays += Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
-    }
-
-    return Math.max(0, Math.round(((totalEmployeeDays - leaveDays) / totalEmployeeDays) * 100));
-  }, [siteEmployees, siteLeaves, user?.role]);
+    return calculatePresencePercentage(managedEmployees, managedLeaves, monthStart, monthEnd);
+  }, [canViewPresence, managedEmployees, managedLeaves]);
 
   const roleColors: Record<string, string> = {
     EMPLOYEE: "#007bff",
@@ -122,8 +131,11 @@ export default function DashboardHome() {
           {user?.annualLeaveBalance !== undefined && (
             <MetricChip label="Annual Leave Left" value={`${user.annualLeaveBalance}`} color="#28a745" />
           )}
-          {attendancePercentage !== null && (
-            <MetricChip label="Monthly Presence" value={`${attendancePercentage}%`} color="#0d6efd" />
+          {weeklyPresencePercentage !== null && (
+            <MetricChip label="Weekly Presence" value={`${weeklyPresencePercentage}%`} color="#20c997" />
+          )}
+          {monthlyPresencePercentage !== null && (
+            <MetricChip label="Monthly Presence" value={`${monthlyPresencePercentage}%`} color="#0d6efd" />
           )}
           {actsAsDepartmentHead && (
             <MetricChip label="Delegated Authority" value="Enabled" color="#fd7e14" />
@@ -162,7 +174,7 @@ export default function DashboardHome() {
         {user?.role === "SUPERVISOR" && (
           <LeaveCalendar
             title="Site Interactive Calendar"
-            leaves={siteLeaves}
+            leaves={managedLeaves}
             emptyMessage="اختر يوماً لمراجعة إجازات موظفي السايت الذي تشرف عليه."
             accentColor="#6f42c1"
           />
@@ -306,4 +318,53 @@ function MetricChip({ label, value, color }: { label: string; value: string; col
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function calculatePresencePercentage(
+  employees: ManagedUser[],
+  leaves: LeaveRequestItem[],
+  periodStart: Date,
+  periodEnd: Date
+) {
+  const totalDays = Math.max(
+    0,
+    Math.floor((periodEnd.getTime() - periodStart.getTime()) / 86400000) + 1
+  );
+  const totalEmployeeDays = employees.length * totalDays;
+
+  if (totalEmployeeDays === 0) {
+    return 0;
+  }
+
+  const employeeIds = new Set(employees.map((employee) => employee.id));
+  const approvedStatuses = new Set(["APPROVED_BY_SUPERVISOR", "APPROVED_BY_DEPARTMENT_HEAD"]);
+  const leaveDays = new Set<string>();
+
+  for (const leave of leaves) {
+    if (!approvedStatuses.has(leave.status) || !leave.employee?.id || !employeeIds.has(leave.employee.id)) {
+      continue;
+    }
+
+    const leaveStart = new Date(leave.startDate);
+    const leaveEnd = new Date(leave.endDate);
+    const effectiveStart = new Date(Math.max(leaveStart.getTime(), periodStart.getTime()));
+    const effectiveEnd = new Date(Math.min(leaveEnd.getTime(), periodEnd.getTime()));
+
+    if (effectiveEnd < effectiveStart) {
+      continue;
+    }
+
+    effectiveStart.setHours(0, 0, 0, 0);
+    effectiveEnd.setHours(0, 0, 0, 0);
+
+    for (
+      const current = new Date(effectiveStart);
+      current <= effectiveEnd;
+      current.setDate(current.getDate() + 1)
+    ) {
+      leaveDays.add(`${leave.employee.id}:${current.toISOString().slice(0, 10)}`);
+    }
+  }
+
+  return Math.max(0, Math.round(((totalEmployeeDays - leaveDays.size) / totalEmployeeDays) * 100));
 }
