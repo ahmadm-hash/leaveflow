@@ -1,108 +1,29 @@
-﻿
+﻿# Project Summary (Legacy Filename)
 
+This file keeps its historical filename for repository compatibility, but the content is fully English.
 
-### 2. **Backend (Node.js + Express + PostgreSQL)**
+## Overview
+LeaveFlow is a workspace-based leave management platform with:
+- Backend API in Express + Prisma + PostgreSQL
+- Frontend dashboard in Next.js + React + Zustand
 
+## Main Features
+- JWT authentication
+- Role-based access control
+- Site and supervisor assignment management
+- Leave approvals and cancellation request flow
+- Dashboard metrics and Excel exports
 
-```
-```
+## Roles
+- EMPLOYEE
+- SUPERVISOR
+- DEPARTMENT_HEAD
+- ADMIN
 
-- RBAC (Role-Based Access Control)
+## Operational Notes
+- Backend startup script applies schema push before launch
+- Delegated department-head behavior is supported through effective role mapping
+- Frontend dashboard behavior is role-aware by design
 
-```
-POST   /api/auth/register
-POST   /api/auth/login
-POST   /api/auth/reset-password/:userId
-GET    /api/users/profile
-PUT    /api/users/profile
-GET    /api/users
-GET    /api/users/site-employees
-POST   /api/users/promote-supervisor
-PUT    /api/users/:userId/deactivate
-```
-
-### 3. **Frontend (React + Next.js)**
-
-
-- Local Storage persistence
-- Auto-logout on 401
-
-- Token auto-attachment
-
-- **Modern & Intuitive** UI
-
-
----
-
-
-
-
-
-
----
-
-
-```bash
-cd c:\Users\ahmed\Dev
-npm install
-
-npm install --workspace=backend
-npm install --workspace=frontend
-```
-
-```bash
-cd backend
-npm run prisma:migrate
-```
-
-
-**Backend:**
-```bash
-cd backend
-npm run dev
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-
-```bash
-```
-
----
-
-
-|------|-------|---------|
-
----
-
-
-✅ Role-based authorization
-✅ SQL injection prevention (Prisma)
-
-✅ Request caching (middleware)
-✅ Database indexing
-✅ Pagination ready
-✅ Optimized queries
-
-✅ Modular architecture
-✅ Easy to add new features
-✅ Clear separation of concerns
-✅ Reusable components
-
----
-
-
-- [Backend README](backend/README.md)
-- [Frontend README](frontend/README.md)
-- [API Testing Guide](API_TESTING.md)
-- [Testing Checklist](TESTING.md)
-
----
-
-
-
-**Happy Coding! 🚀**
-
+## Documentation
+See INDEX.md for the current documentation map.

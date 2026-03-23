@@ -1,164 +1,20 @@
-﻿┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                                                          ┃
-┃                                                          ┃
-┃                                                          ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+﻿LeaveFlow - Start Here
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1) Install dependencies from repository root:
+   npm run install-all
 
+2) Configure environment files:
+   - backend/.env
+   - frontend/.env.local
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3) Initialize schema (if needed):
+   npm run prisma:push --workspace=backend
 
+4) Start both apps:
+   npm run dev
 
-   ├── Express.js Server
-   ├── PostgreSQL Database
-   ├── Prisma ORM
-   ├── JWT Authentication
-   ├── Role-Based Access Control
-   └── 11 API Endpoints
+5) Open:
+   - Frontend: http://localhost:3000
+   - Backend health: http://localhost:5000/api/health
 
-   ├── Next.js 14
-   ├── React 18
-   ├── Zustand State Management
-   ├── Axios HTTP Client
-   ├── Light Mode UI
-   └── Responsive Design
-
-   └── Audit Logging
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-
-   npm install
-   npm run prisma:migrate --workspace=backend
-   npm run dev --workspace=backend &
-   npm run dev --workspace=frontend
-
-   http://localhost:3000
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-  → INDEX.md
-  → QUICKSTART.md
-  → QUICK_REFERENCE.md
-
-  → FILE_STRUCTURE.md
-  → DEVELOPMENT.md
-  → ENDPOINTS_GUIDE.md
-
-  → API_TESTING.md
-  → TESTING.md
-  → LeaveFlow_API.postman_collection.json
-
-  → TROUBLESHOOTING.md
-
-  → FINAL_REPORT.md
-  → README.md
-  → PROJECT_SUMMARY_AR.md
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-   c:\\Users\\ahmed\\Dev\\
-
-   ✅ bcrypt password hashing
-   ✅ JWT token authentication
-   ✅ Role-based access control
-   ✅ CORS configuration
-
-   Backend:   Node.js + Express + PostgreSQL + Prisma
-   Frontend:  Next.js + React + TypeScript + Zustand
-   Language:  TypeScript (strict mode)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-🔒 Password Hashing:     bcrypt (10 rounds)
-🔒 Token Auth:          JWT (7 days validity)
-🔒 Authorization:       Role-Based Access Control
-🔒 SQL Prevention:      Prisma ORM
-🔒 Request Validation:  Type checking
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-
-
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-Codebase:
-  └─ 100% TypeScript
-
-API:
-  ├─ 11 endpoint
-  ├─ 4 auth endpoints
-  ├─ 7 user endpoints
-
-Database:
-  ├─ Audit logging
-
-UI:
-  ├─ Light Mode
-  ├─ Responsive
-  └─ Intuitive
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-   → Backend + Frontend + Database + Docs
-
-
-
-   → TypeScript + Clean Code
-
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-
-
-
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-
-
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🚀 Ready to Code?
-
-  npm install
-  npm run prisma:migrate --workspace=backend
-  npm run dev --workspace=backend &
-  npm run dev --workspace=frontend
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                                                          ┃
-┃                                                          ┃
-┃                                                          ┃
-┃                                                          ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
+If startup fails, open TROUBLESHOOTING.md.

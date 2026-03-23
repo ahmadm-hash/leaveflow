@@ -1,140 +1,84 @@
-﻿
+﻿# File Structure
 
-```
+High-level project structure:
+
+```text
 leaveflow/
-│
-│
-│
-│
-│   │
-│   │
-│   │
-│       │
-│       │
-│       ├── 📁 controllers/
-│       │   │
-│       │
-│       ├── 📁 routes/
-│       │   │   ├── POST /register
-│       │   │   ├── POST /login
-│       │   │   └── POST /reset-password/:id
-│       │   │
-│       │       ├── GET /profile
-│       │       ├── PUT /profile
-│       │       ├── GET /
-│       │       ├── GET /site-employees
-│       │       ├── POST /promote-supervisor
-│       │       └── PUT /:id/deactivate
-│       │
-│       ├── 📁 middleware/
-│       │
-│       ├── 📁 utils/
-│       │   │   ├── generateToken()
-│       │   │   ├── verifyToken()
-│       │   │   └── decodeToken()
-│       │   │
-│       │       ├── hashPassword()    - bcrypt
-│       │       └── comparePassword()
-│       │
-│
-│
-│   │
-│   │
-│       │
-│       │
-│       │
-│       │   │
-│       │   ├── 📁 login/
-│       │   │
-│       │   └── 📁 register/
-│       │           ├── validation
-│       │
-│       │   │
-│       │   │   └── Logout Button
-│       │   │
-│       │   ├── 📁 home/
-│       │   │
-│       │       └── page.tsx
-│       │
-│       │
-│       │   │
-│       │   │   ├── Axios configuration
-│       │   │
-│       │       ├── login()
-│       │       ├── register()
-│       │       ├── getProfile()
-│       │       └── updateProfile()
-│       │
-│           └── authStore.ts          Zustand
-│               ├── token            - JWT Token
-│               └── localStorage persistence
-│
+  backend/
+    prisma/
+      schema.prisma
+    src/
+      controllers/
+        authController.ts
+        departmentController.ts
+        leaveController.ts
+        siteController.ts
+        userController.ts
+      middleware/
+        auth.ts
+      routes/
+        authRoutes.ts
+        departmentRoutes.ts
+        leaveRoutes.ts
+        siteRoutes.ts
+        userRoutes.ts
+      scripts/
+        ensureDepartmentHead.ts
+      utils/
+        ensureDepartmentHeadUser.ts
+        jwt.ts
+        password.ts
+      index.ts
+    package.json
+    tsconfig.json
+
+  frontend/
+    app/
+      (auth)/
+        login/page.tsx
+        register/page.tsx
+      components/
+        Alert.tsx
+        Card.tsx
+        LeaveCalendar.tsx
+        NavLink.tsx
+        StatusBadge.tsx
+      dashboard/
+        home/page.tsx
+        leaves/page.tsx
+        leaves/new/page.tsx
+        manage/page.tsx
+        profile/page.tsx
+        sites/page.tsx
+        users/page.tsx
+      lib/
+        apiClient.ts
+        authService.ts
+        leaveService.ts
+      store/
+        authStore.ts
+      layout.tsx
+      page.tsx
+    middleware.ts
+    package.json
+    tsconfig.json
+
+  API_TESTING.md
+  DEVELOPMENT.md
+  ENDPOINTS_GUIDE.md
+  FILE_STRUCTURE.md
+  INDEX.md
+  QUICK_REFERENCE.md
+  QUICKSTART.md
+  README.md
+  START_HERE.txt
+  TESTING.md
+  TROUBLESHOOTING.md
+  package.json
 ```
 
----
-
-
-|------|---------|
-
-### **Backend**
-|------|---------|
-
-### **Frontend**
-|------|---------|
-
----
-
-
-```
-1. frontend/app/(auth)/register/page.tsx
-
-2. backend/src/routes/authRoutes.ts
-
-```
-
-```
-1. frontend/app/(auth)/login/page.tsx
-
-2. backend/src/controllers/authController.ts
-
-```
-
----
-
-
-```
-frontend/app/dashboard/home
-
-```
-
-```
-```
-
----
-
-
-```
-```
-
-```
-```
-
-```
-```
-
----
-
-
-```
-Total Files Created:
-
-Total Code:
-  ├─ 11 Endpoints
-  ├─ 6 Database Tables
-  └─ 100% TypeScript
-
-```
-
----
-
-
+## Notes
+- Backend route registration happens in backend/src/index.ts.
+- Prisma schema is the source of truth for data models.
+- Frontend API access flows through app/lib/apiClient.ts.
+- Role-aware navigation is handled inside dashboard layout.

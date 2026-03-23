@@ -1,190 +1,84 @@
-﻿
+﻿# Quick Start
 
+This guide gets LeaveFlow running locally as fast as possible.
 
+## 1) Prerequisites
+- Node.js 20.x
+- npm 10.x
+- PostgreSQL running locally or remotely
 
-```
-leaveflow/
-```
-
----
-
-## 🔧 **Backend - Node.js + Express + PostgreSQL**
-
-```typescript
-
-
-RBAC - Role-Based Access Control
-```
-
-```
-```
-
-```typescript
-authController:
-
-userController:
-```
-
-```typescript
-authMiddleware:
-
-authorizeRole():
-```
-
-```
-```
-
----
-
-## 🎨 **Frontend - React + Next.js**
-
-```
-(auth)/
-
-dashboard/
-```
-
-```typescript
-useAuthStore (Zustand):
-
-```
-
-```typescript
-authService:
-
-apiClient:
-  ├── Auto-attach JWT token
-  ├── Auto-logout on 401
-```
-
-```
-```
-
----
-
-
-- SQL injection prevention (Prisma)
-- CORS configuration
-
-- Architecture modular
-- Easy to add new features
-- Clear separation of concerns
-- Reusable components
-- Extensible database schema
-
-- Optimized queries
-- Database indexing ready
-- Request caching support
-- Pagination support
-- Async/await properly used
-
-- TypeScript strict mode
-- Clear code structure
-- Well-organized files
-- Easy to debug
-- Good error messages
-
----
-
+## 2) Install Dependencies
+From repository root:
 
 ```bash
-cd c:\Users\ahmed\Dev
-
-npm install
-
-npm install --workspace=backend
-npm install --workspace=frontend
+npm run install-all
 ```
 
-```bash
-# Backend
-cd backend
-cp .env.example .env
+## 3) Configure Backend Environment
+Create backend environment file:
+- Path: backend/.env
 
-# Frontend
-cd frontend
-cp .env.local.example .env.local
+Suggested values:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/leaveflow?schema=public"
+JWT_SECRET="change-this-in-production"
+FRONTEND_URL="http://localhost:3000"
+BACKEND_PORT=5000
+NODE_ENV=development
 ```
 
-```bash
-cd backend
+## 4) Configure Frontend Environment
+Create frontend environment file:
+- Path: frontend/.env.local
 
-npm run prisma:migrate
+Suggested values:
 
-npm run prisma:studio
+```env
+NEXT_PUBLIC_API_URL="http://localhost:5000/api"
 ```
 
+## 5) Initialize Database
+If this is a fresh database, push schema:
 
-**Terminal 1 - Backend:**
 ```bash
-cd backend
+npm run prisma:push --workspace=backend
+```
+
+If you are using migrations in active development:
+
+```bash
+npm run prisma:migrate --workspace=backend
+```
+
+## 6) Run the System
+From root:
+
+```bash
 npm run dev
 ```
 
-**Terminal 2 - Frontend:**
+Or run services separately:
+
 ```bash
-cd frontend
-npm run dev
+npm run dev --workspace=backend
+npm run dev --workspace=frontend
 ```
 
-```
-```
+## 7) Verify
+- Backend health: http://localhost:5000/api/health
+- Frontend: http://localhost:3000
 
----
+## 8) Build Check
 
-
-```typescript
-```
-
-```typescript
+```bash
+npm run build
 ```
 
-```typescript
-```
+## Common First-Run Issues
+- Invalid DATABASE_URL
+- PostgreSQL service not running
+- Port conflicts on 3000 or 5000
+- Missing NEXT_PUBLIC_API_URL in frontend/.env.local
 
----
-
-
-|------|-------|
-
----
-
-
-```typescript
-process.env.JWT_SECRET
-process.env.DATABASE_URL
-
-```
-
-```typescript
-```
-
-```typescript
-```
-
----
-
-
-
----
-
-
-
----
-
-
-
-
----
-
-## 🚀 **Happy Coding!**
-
-```
-╔═══════════════════════════════════════════════════════╗
-║                   LeaveFlow v1.0.0                   ║
-║                                                       ║
-║    Built with ❤️ using Node.js, React & PostgreSQL  ║
-╚═══════════════════════════════════════════════════════╝
-```
-
-
+For deeper diagnostics see TROUBLESHOOTING.md.
