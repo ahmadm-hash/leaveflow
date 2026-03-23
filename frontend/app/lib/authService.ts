@@ -72,4 +72,19 @@ export const authService = {
     const response = await getApiClient().get("/users/site-employees");
     return response.data;
   },
+
+  async deactivateUser(userId: string): Promise<{ message: string }> {
+    const response = await getApiClient().put(`/users/${userId}/deactivate`);
+    return response.data;
+  },
+
+  async createSite(payload: { name: string; location: string }): Promise<{ message: string; site: { id: string; name: string; location: string } }> {
+    const response = await getApiClient().post("/sites", payload);
+    return response.data;
+  },
+
+  async createDepartment(payload: { name: string; headId?: string }): Promise<{ message: string; department: { id: string; name: string } }> {
+    const response = await getApiClient().post("/departments", payload);
+    return response.data;
+  },
 };

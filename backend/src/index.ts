@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import leaveRoutes from "./routes/leaveRoutes";
+import departmentRoutes from "./routes/departmentRoutes";
+import siteRoutes from "./routes/siteRoutes";
 import { ensureDepartmentHeadUser } from "./utils/ensureDepartmentHeadUser";
 
 dotenv.config();
@@ -35,6 +37,8 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/leaves", leaveRoutes);
+app.use("/api/departments", departmentRoutes);
+app.use("/api/sites", siteRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
