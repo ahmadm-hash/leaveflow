@@ -82,7 +82,7 @@ export function LeaveCalendar({
         <div>
           <h2 style={{ margin: 0, fontSize: "18px", color: "#222", fontWeight: 700 }}>{title}</h2>
           <div style={{ color: "#666", fontSize: "13px", marginTop: "4px" }}>
-            اضغط على أي يوم لعرض الطلبات المرتبطة به
+            Click any day to view linked requests
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
@@ -156,7 +156,7 @@ export function LeaveCalendar({
         {!selectedDate ? (
           <div style={{ color: "#777", fontSize: "13px" }}>{emptyMessage}</div>
         ) : selectedEvents.length === 0 ? (
-          <div style={{ color: "#777", fontSize: "13px" }}>لا توجد طلبات في {selectedDate}.</div>
+          <div style={{ color: "#777", fontSize: "13px" }}>No requests on {selectedDate}.</div>
         ) : (
           <div style={{ display: "grid", gap: "10px" }}>
             {selectedEvents.map((event) => (

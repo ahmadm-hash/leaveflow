@@ -20,7 +20,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"employee@example.com\",\n  \"username\": \"employee1\",\n  \"password\": \"password123\",\n  \"fullName\": \"أحمد محمد\"\n}"
+              "raw": "{\n  \"email\": \"employee@example.com\",\n  \"username\": \"employee1\",\n  \"password\": \"password123\",\n  \"fullName\": \"Ahmed Mohamed\"\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/auth/register",
@@ -113,7 +113,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fullName\": \"أحمد محمد علي\",\n  \"email\": \"newemail@example.com\"\n}"
+              "raw": "{\n  \"fullName\": \"Ahmed Mohamed Ali\",\n  \"email\": \"newemail@example.com\"\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}/api/users/profile",

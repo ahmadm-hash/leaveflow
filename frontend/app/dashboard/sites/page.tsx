@@ -110,7 +110,7 @@ export default function SitesPage() {
         <div>
           <h1 style={{ color: "#333", fontSize: "24px", margin: 0 }}>Site Management</h1>
           <p style={{ margin: "6px 0 0 0", color: "#666", fontSize: "14px" }}>
-            كل ما يخص السايتات صار هنا: إنشاء السايتات وربطها بالمشرفين.
+            Everything related to sites is managed here: creating sites and assigning supervisors.
           </p>
         </div>
       </div>

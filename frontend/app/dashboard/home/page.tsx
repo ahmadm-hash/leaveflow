@@ -472,7 +472,7 @@ export default function DashboardHome() {
           <LeaveCalendar
             title="My Interactive Calendar"
             leaves={leaves}
-            emptyMessage="اختر يوماً من التقويم لمراجعة إجازاتك الشخصية."
+            emptyMessage="Select a day from the calendar to review your personal leaves."
             accentColor={roleColor}
           />
         )}
@@ -481,7 +481,7 @@ export default function DashboardHome() {
           <LeaveCalendar
             title="Site Interactive Calendar"
             leaves={managedLeaves}
-            emptyMessage="اختر يوماً لمراجعة إجازات موظفي السايت الذي تشرف عليه."
+            emptyMessage="Select a day to review leave requests for employees in your site."
             accentColor="#6f42c1"
           />
         )}
