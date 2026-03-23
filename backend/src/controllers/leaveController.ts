@@ -131,7 +131,7 @@ export const leaveController = {
           documentUrl: documentUrl ? String(documentUrl).trim() : undefined,
           employeeId: employee.id,
           siteId: employee.siteId,
-          departmentId,
+          departmentId: department.id,
         },
         include: {
           department: {
