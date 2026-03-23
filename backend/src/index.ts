@@ -11,7 +11,10 @@ import { ensureDepartmentHeadUser } from "./utils/ensureDepartmentHeadUser";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const cliPortArg = process.argv.find((arg) => arg.startsWith("--port="));
+const cliPort = cliPortArg ? cliPortArg.split("=")[1] : undefined;
+const resolvedPort = cliPort || process.env.BACKEND_PORT || process.env.PORT || "5000";
+const PORT = Number(resolvedPort);
 const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())

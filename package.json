@@ -17,7 +17,7 @@
     "install-all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
     "dev": "npm run dev --workspace=backend & npm run dev --workspace=frontend",
     "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
-    "start": "npm run start --workspace=backend & npm start --workspace=frontend"
+    "start": "npm run start --workspace=backend -- --port=5000 & npm start --workspace=frontend"
   },
   "keywords": [
     "leave",
