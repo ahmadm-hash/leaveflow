@@ -8,7 +8,12 @@ import { Card } from "../../components/Card";
 import { Alert } from "../../components/Alert";
 import { toast, Toaster } from "sonner";
 
-type Tab = "list" | "create";
+type Tab = "list" | "create" | "createSite";
+
+interface SitePayload {
+  name: string;
+  location: string;
+}
 
 const roleColors: Record<string, string> = {
   EMPLOYEE: "#007bff",
@@ -29,6 +34,7 @@ export default function UsersPage() {
 
   const canCreateEmployee = user?.role === "SUPERVISOR";
   const canCreateSupervisor = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
+  const canCreateSite = user?.role === "DEPARTMENT_HEAD" || user?.role === "SUPERVISOR";
   const isAdmin = user?.role === "ADMIN";
 
   const defaultForm: ManagedUserPayload = {
@@ -40,6 +46,7 @@ export default function UsersPage() {
     siteId: "",
   };
   const [form, setForm] = useState<ManagedUserPayload>(defaultForm);
+  const [siteForm, setSiteForm] = useState<SitePayload>({ name: "", location: "" });
 
   const load = async () => {
     setLoading(true);
@@ -104,28 +111,76 @@ export default function UsersPage() {
     }
   };
 
+  const handleSiteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSiteForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleCreateSite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await authService.createSite({
+        name: siteForm.name.trim(),
+        location: siteForm.location.trim(),
+      });
+      toast.success("Site created successfully");
+      setSiteForm({ name: "", location: "" });
+      setTab("list");
+      await load();
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Object && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      setError(msg ?? "Failed to create site");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div>
       <Toaster position="top-right" />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
         <h1 style={{ color: "#333", fontSize: "24px", margin: 0 }}>User Management</h1>
-        {(canCreateEmployee || canCreateSupervisor) && (
-          <button
-            onClick={() => setTab(tab === "create" ? "list" : "create")}
-            style={{
-              backgroundColor: tab === "create" ? "#6c757d" : "#007bff",
-              color: "white",
-              border: "none",
-              padding: "9px 20px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "500",
-            }}
-          >
-            {tab === "create" ? "← Back to List" : `+ Add ${canCreateEmployee ? "Employee" : "Supervisor"}`}
-          </button>
-        )}
+        <div style={{ display: "flex", gap: "10px" }}>
+          {(canCreateEmployee || canCreateSupervisor) && (
+            <button
+              onClick={() => setTab(tab === "create" ? "list" : "create")}
+              style={{
+                backgroundColor: tab === "create" ? "#6c757d" : "#007bff",
+                color: "white",
+                border: "none",
+                padding: "9px 20px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              {tab === "create" ? "← Back to List" : `+ Add ${canCreateEmployee ? "Employee" : "Supervisor"}`}
+            </button>
+          )}
+
+          {canCreateSite && (
+            <button
+              onClick={() => setTab(tab === "createSite" ? "list" : "createSite")}
+              style={{
+                backgroundColor: tab === "createSite" ? "#6c757d" : "#28a745",
+                color: "white",
+                border: "none",
+                padding: "9px 20px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              {tab === "createSite" ? "← Back to List" : "+ Add Site"}
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <Alert type="error" message={error} />}
@@ -176,6 +231,46 @@ export default function UsersPage() {
                 {submitting ? "Creating..." : "Create Account"}
               </button>
               <button type="button" onClick={() => { setForm(defaultForm); setTab("list"); }} style={secondaryBtnStyle}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {tab === "createSite" && canCreateSite && (
+        <Card title="Create Site" style={{ maxWidth: "560px" }}>
+          <form onSubmit={handleCreateSite}>
+            <label style={labelStyle}>Site Name *</label>
+            <input
+              name="name"
+              value={siteForm.name}
+              onChange={handleSiteChange}
+              required
+              style={inputStyle}
+            />
+
+            <label style={labelStyle}>Location *</label>
+            <input
+              name="location"
+              value={siteForm.location}
+              onChange={handleSiteChange}
+              required
+              style={inputStyle}
+            />
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+              <button type="submit" disabled={submitting} style={primaryBtnStyle}>
+                {submitting ? "Creating..." : "Create Site"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSiteForm({ name: "", location: "" });
+                  setTab("list");
+                }}
+                style={secondaryBtnStyle}
+              >
                 Cancel
               </button>
             </div>
