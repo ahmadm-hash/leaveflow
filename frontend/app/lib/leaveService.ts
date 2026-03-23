@@ -3,9 +3,9 @@ import { getApiClient } from "./apiClient";
 export interface LeaveRequestPayload {
   startDate: string;
   endDate: string;
-  leaveType: "ANNUAL" | "SICK" | "COMPASSIONATE" | "UNPAID";
-  departmentId: string;
+  leaveType: "ANNUAL" | "SICK" | "UNPAID";
   reason?: string;
+  documentUrl?: string;
 }
 
 export interface LeaveRequestItem {

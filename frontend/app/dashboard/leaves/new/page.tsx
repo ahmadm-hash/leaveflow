@@ -1,21 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { leaveService, Department } from "../../../lib/leaveService";
+import { leaveService } from "../../../lib/leaveService";
 import { useAuthStore } from "../../../store/authStore";
 import { Card } from "../../../components/Card";
 import { Alert } from "../../../components/Alert";
 import { toast, Toaster } from "sonner";
 
-const LEAVE_TYPES = ["ANNUAL", "SICK", "COMPASSIONATE", "UNPAID"] as const;
+const LEAVE_TYPES = ["ANNUAL", "SICK", "UNPAID"] as const;
 
 export default function NewLeavePage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
 
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loadingDepts, setLoadingDepts] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,18 +21,9 @@ export default function NewLeavePage() {
     startDate: "",
     endDate: "",
     leaveType: "ANNUAL" as (typeof LEAVE_TYPES)[number],
-    departmentId: "",
     reason: "",
     documentUrl: "",
   });
-
-  useEffect(() => {
-    leaveService
-      .getDepartments()
-      .then((data) => setDepartments(data.departments))
-      .catch(() => setError("Failed to load departments"))
-      .finally(() => setLoadingDepts(false));
-  }, []);
 
   const days =
     form.startDate && form.endDate
@@ -58,8 +47,13 @@ export default function NewLeavePage() {
       return;
     }
 
-    if (!form.departmentId) {
-      setError("Please select a department");
+    if (form.leaveType === "SICK" && !form.documentUrl.trim()) {
+      setError("Medical Document URL is required for Sickleave");
+      return;
+    }
+
+    if (form.leaveType === "SICK" && !/\.pdf($|\?)/i.test(form.documentUrl.trim())) {
+      setError("Medical Document URL must point to a PDF file");
       return;
     }
 
@@ -69,8 +63,8 @@ export default function NewLeavePage() {
         startDate: form.startDate,
         endDate: form.endDate,
         leaveType: form.leaveType,
-        departmentId: form.departmentId,
         reason: form.reason || undefined,
+        documentUrl: form.documentUrl.trim() || undefined,
       });
       toast.success("Leave request submitted successfully!");
       router.push("/dashboard/leaves");
@@ -168,33 +162,10 @@ export default function NewLeavePage() {
             <select name="leaveType" value={form.leaveType} onChange={handleChange} style={inputStyle}>
               {LEAVE_TYPES.map((t) => (
                 <option key={t} value={t}>
-                  {t.charAt(0) + t.slice(1).toLowerCase().replace("_", " ")}
+                  {t === "SICK" ? "Sickleave" : t.charAt(0) + t.slice(1).toLowerCase().replace("_", " ")}
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Department */}
-          <div>
-            <label style={labelStyle}>Department *</label>
-            {loadingDepts ? (
-              <div style={{ color: "#999", fontSize: "13px", padding: "8px 0" }}>Loading departments...</div>
-            ) : (
-              <select
-                name="departmentId"
-                value={form.departmentId}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              >
-                <option value="">Select a department</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            )}
           </div>
 
           {/* Reason */}
@@ -213,13 +184,14 @@ export default function NewLeavePage() {
           {/* Document URL (for medical) */}
           {form.leaveType === "SICK" && (
             <div>
-              <label style={labelStyle}>Medical Document URL (optional)</label>
+              <label style={labelStyle}>Medical Document URL (PDF) *</label>
               <input
                 type="url"
                 name="documentUrl"
                 value={form.documentUrl}
                 onChange={handleChange}
-                placeholder="https://..."
+                required
+                placeholder="https://example.com/medical-report.pdf"
                 style={inputStyle}
               />
             </div>

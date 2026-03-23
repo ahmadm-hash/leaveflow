@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const VALID_LEAVE_TYPES = ["ANNUAL", "SICK", "COMPASSIONATE", "UNPAID"];
+const VALID_LEAVE_TYPES = ["ANNUAL", "SICK", "UNPAID"];
 
 const getInclusiveDays = (startDate: Date, endDate: Date): number => {
   const msPerDay = 1000 * 60 * 60 * 24;
@@ -20,7 +20,7 @@ export const leaveController = {
 
       const { startDate, endDate, leaveType, reason, departmentId, documentUrl } = req.body;
 
-      if (!startDate || !endDate || !leaveType || !departmentId) {
+      if (!startDate || !endDate || !leaveType) {
         res.status(400).json({ message: "Missing required fields" });
         return;
       }
@@ -43,6 +43,18 @@ export const leaveController = {
         return;
       }
 
+      if (leaveType === "SICK") {
+        if (!documentUrl || !String(documentUrl).trim()) {
+          res.status(400).json({ message: "Medical Document URL is required for Sickleave" });
+          return;
+        }
+
+        if (!/\.pdf($|\?)/i.test(String(documentUrl).trim())) {
+          res.status(400).json({ message: "Medical Document URL must point to a PDF file" });
+          return;
+        }
+      }
+
       const employee = await prisma.user.findUnique({
         where: { id: req.user.userId },
         select: {
@@ -63,13 +75,18 @@ export const leaveController = {
         return;
       }
 
-      const department = await prisma.department.findUnique({
-        where: { id: departmentId },
-        select: { id: true },
-      });
+      const department = departmentId
+        ? await prisma.department.findUnique({
+            where: { id: departmentId },
+            select: { id: true },
+          })
+        : await prisma.department.findFirst({
+            select: { id: true },
+            orderBy: { name: "asc" },
+          });
 
       if (!department) {
-        res.status(404).json({ message: "Department not found" });
+        res.status(404).json({ message: "No department found. Please contact admin." });
         return;
       }
 
@@ -89,7 +106,7 @@ export const leaveController = {
           endDate: parsedEndDate,
           leaveType,
           reason,
-          documentUrl,
+          documentUrl: documentUrl ? String(documentUrl).trim() : undefined,
           employeeId: employee.id,
           siteId: employee.siteId,
           departmentId,
