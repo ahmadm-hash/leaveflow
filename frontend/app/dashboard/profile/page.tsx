@@ -10,9 +10,12 @@ import { toast, Toaster } from "sonner";
 export default function ProfilePage() {
   const { user, setUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,6 +40,42 @@ export default function ProfilePage() {
       setError(msg ?? "Failed to update profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user?.id) {
+      setError("Unable to identify current user");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Password confirmation does not match");
+      return;
+    }
+
+    setPasswordLoading(true);
+    setError(null);
+    try {
+      await authService.resetPassword(user.id, newPassword);
+      setNewPassword("");
+      setConfirmPassword("");
+      toast.success("Password changed successfully");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Object && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      setError(msg ?? "Failed to change password");
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -102,60 +141,90 @@ export default function ProfilePage() {
         </Card>
 
         {/* Right: Details / Edit form */}
-        <Card title="Account Information">
-          {!editing ? (
-            <div>
-              <InfoRow label="Full Name" value={user?.fullName ?? "-"} />
-              <InfoRow label="Email" value={user?.email ?? "-"} />
-              <InfoRow label="Username" value={user?.username ?? "-"} />
-              <InfoRow label="Role" value={user?.role ?? "-"} />
-              {user?.annualLeaveBalance !== undefined && (
-                <InfoRow label="Annual Leave Balance" value={`${user.annualLeaveBalance} days`} />
-              )}
-              <button
-                onClick={() => setEditing(true)}
-                style={primaryBtnStyle}
-              >
-                Edit Profile
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSave}>
-              <label style={labelStyle}>Full Name</label>
-              <input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                style={inputStyle}
-              />
-              <label style={labelStyle}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={inputStyle}
-              />
-              <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
-                <button type="submit" disabled={loading} style={primaryBtnStyle}>
-                  {loading ? "Saving..." : "Save Changes"}
-                </button>
+        <div style={{ display: "grid", gap: "20px" }}>
+          <Card title="Account Information">
+            {!editing ? (
+              <div>
+                <InfoRow label="Full Name" value={user?.fullName ?? "-"} />
+                <InfoRow label="Email" value={user?.email ?? "-"} />
+                <InfoRow label="Username" value={user?.username ?? "-"} />
+                <InfoRow label="Role" value={user?.role ?? "-"} />
+                {user?.annualLeaveBalance !== undefined && (
+                  <InfoRow label="Annual Leave Balance" value={`${user.annualLeaveBalance} days`} />
+                )}
                 <button
-                  type="button"
-                  onClick={() => {
-                    setEditing(false);
-                    setFullName(user?.fullName ?? "");
-                    setEmail(user?.email ?? "");
-                    setError(null);
-                  }}
-                  style={secondaryBtnStyle}
+                  onClick={() => setEditing(true)}
+                  style={primaryBtnStyle}
                 >
-                  Cancel
+                  Edit Profile
                 </button>
               </div>
+            ) : (
+              <form onSubmit={handleSave}>
+                <label style={labelStyle}>Full Name</label>
+                <input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+                <label style={labelStyle}>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+                <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
+                  <button type="submit" disabled={loading} style={primaryBtnStyle}>
+                    {loading ? "Saving..." : "Save Changes"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(false);
+                      setFullName(user?.fullName ?? "");
+                      setEmail(user?.email ?? "");
+                      setError(null);
+                    }}
+                    style={secondaryBtnStyle}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </Card>
+
+          <Card title="Change Password">
+            <form onSubmit={handlePasswordChange}>
+              <label style={labelStyle}>New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={6}
+                required
+                style={inputStyle}
+              />
+
+              <label style={labelStyle}>Confirm New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={6}
+                required
+                style={inputStyle}
+              />
+
+              <button type="submit" disabled={passwordLoading} style={primaryBtnStyle}>
+                {passwordLoading ? "Updating..." : "Change Password"}
+              </button>
             </form>
-          )}
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );
