@@ -7,6 +7,7 @@ import { leaveService, LeaveRequestItem } from "../../lib/leaveService";
 import { authService, ManagedUser } from "../../lib/authService";
 import { StatusBadge } from "../../components/StatusBadge";
 import { LeaveCalendar } from "../../components/LeaveCalendar";
+import { Toaster, toast } from "sonner";
 
 export default function DashboardHome() {
   const user = useAuthStore((state) => state.user);
@@ -14,9 +15,20 @@ export default function DashboardHome() {
   const [managedLeaves, setManagedLeaves] = useState<LeaveRequestItem[]>([]);
   const [managedEmployees, setManagedEmployees] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exportingReport, setExportingReport] = useState(false);
+  const [reportStartDate, setReportStartDate] = useState(() => {
+    const now = new Date();
+    return toInputDate(new Date(now.getFullYear(), now.getMonth(), 1));
+  });
+  const [reportEndDate, setReportEndDate] = useState(() => toInputDate(new Date()));
+  const [reportSiteId, setReportSiteId] = useState("");
+  const [reportEmployeeId, setReportEmployeeId] = useState("");
+
   const actsAsDepartmentHead = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead;
   const canViewPresence =
     user?.role === "SUPERVISOR" || actsAsDepartmentHead || user?.role === "ADMIN";
+  const canSubmitLeave = user?.role === "EMPLOYEE" || user?.role === "SUPERVISOR";
+  const canExportReports = actsAsDepartmentHead || user?.role === "ADMIN";
 
   useEffect(() => {
     let isMounted = true;
@@ -59,14 +71,6 @@ export default function DashboardHome() {
     };
   }, [actsAsDepartmentHead, canViewPresence, user?.role]);
 
-  const stats = {
-    total: leaves.length,
-    pending: leaves.filter((leave) => leave.status === "PENDING").length,
-    approved: leaves.filter((leave) => leave.status === "APPROVED_BY_DEPARTMENT_HEAD").length,
-    rejected: leaves.filter((leave) => leave.status === "REJECTED").length,
-  };
-
-  const recentLeaves = leaves.slice(0, 5);
   const isManager =
     user?.role === "SUPERVISOR" || user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
 
@@ -100,6 +104,89 @@ export default function DashboardHome() {
     return calculatePresencePercentage(managedEmployees, managedLeaves, monthStart, monthEnd);
   }, [canViewPresence, managedEmployees, managedLeaves]);
 
+  const sitePresenceRows = useMemo(() => {
+    if (!canViewPresence || managedEmployees.length === 0) {
+      return [] as Array<{ siteId: string; siteName: string; weekly: number; monthly: number; employees: number }>;
+    }
+
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setDate(now.getDate() - now.getDay());
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    monthEnd.setHours(23, 59, 59, 999);
+
+    const employeesBySite = new Map<string, { siteName: string; employees: ManagedUser[] }>();
+    for (const employee of managedEmployees) {
+      if (!employee.site?.id) continue;
+      const siteId = employee.site.id;
+      const current = employeesBySite.get(siteId);
+      if (!current) {
+        employeesBySite.set(siteId, { siteName: employee.site.name, employees: [employee] });
+      } else {
+        current.employees.push(employee);
+      }
+    }
+
+    const leavesBySite = new Map<string, LeaveRequestItem[]>();
+    for (const leave of managedLeaves) {
+      const siteId = leave.site?.id;
+      if (!siteId) continue;
+      const current = leavesBySite.get(siteId) ?? [];
+      current.push(leave);
+      leavesBySite.set(siteId, current);
+    }
+
+    return Array.from(employeesBySite.entries())
+      .map(([siteId, data]) => {
+        const leavesForSite = leavesBySite.get(siteId) ?? [];
+        return {
+          siteId,
+          siteName: data.siteName,
+          employees: data.employees.length,
+          weekly: calculatePresencePercentage(data.employees, leavesForSite, weekStart, weekEnd),
+          monthly: calculatePresencePercentage(data.employees, leavesForSite, monthStart, monthEnd),
+        };
+      })
+      .sort((a, b) => a.siteName.localeCompare(b.siteName));
+  }, [canViewPresence, managedEmployees, managedLeaves]);
+
+  const reportSites = useMemo(() => {
+    const siteMap = new Map<string, string>();
+    for (const employee of managedEmployees) {
+      if (employee.site?.id && employee.site?.name) {
+        siteMap.set(employee.site.id, employee.site.name);
+      }
+    }
+    return Array.from(siteMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [managedEmployees]);
+
+  const reportEmployees = useMemo(() => {
+    const filtered = reportSiteId
+      ? managedEmployees.filter((employee) => employee.site?.id === reportSiteId)
+      : managedEmployees;
+
+    return [...filtered].sort((a, b) => a.fullName.localeCompare(b.fullName));
+  }, [managedEmployees, reportSiteId]);
+
+  useEffect(() => {
+    if (!reportEmployeeId) return;
+    const stillVisible = reportEmployees.some((employee) => employee.id === reportEmployeeId);
+    if (!stillVisible) {
+      setReportEmployeeId("");
+    }
+  }, [reportEmployeeId, reportEmployees]);
+
+  const dashboardLeaves = canSubmitLeave ? leaves : managedLeaves;
+
   const roleColors: Record<string, string> = {
     EMPLOYEE: "#007bff",
     SUPERVISOR: "#6f42c1",
@@ -108,8 +195,90 @@ export default function DashboardHome() {
   };
   const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#007bff";
 
+  const stats = {
+    total: dashboardLeaves.length,
+    pending: dashboardLeaves.filter((leave) => leave.status === "PENDING").length,
+    approved: dashboardLeaves.filter((leave) => leave.status === "APPROVED_BY_DEPARTMENT_HEAD").length,
+    rejected: dashboardLeaves.filter((leave) => leave.status === "REJECTED").length,
+  };
+
+  const recentLeaves = dashboardLeaves.slice(0, 5);
+
+  const handleExportExcel = async () => {
+    if (!canExportReports) {
+      toast.error("You do not have permission to export reports");
+      return;
+    }
+
+    if (!reportStartDate || !reportEndDate) {
+      toast.error("Please select start and end dates");
+      return;
+    }
+
+    const start = new Date(reportStartDate);
+    const end = new Date(reportEndDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+      toast.error("Invalid date range");
+      return;
+    }
+
+    const reportLeaves = managedLeaves
+      .filter((leave) => {
+        const leaveStart = new Date(leave.startDate);
+        const leaveEnd = new Date(leave.endDate);
+        const overlapsRange = leaveStart <= end && leaveEnd >= start;
+        if (!overlapsRange) return false;
+        if (reportSiteId && leave.site?.id !== reportSiteId) return false;
+        if (reportEmployeeId && leave.employee?.id !== reportEmployeeId) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+    if (reportLeaves.length === 0) {
+      toast.error("No leave data found for the selected filters");
+      return;
+    }
+
+    setExportingReport(true);
+    try {
+      const XLSX = await import("xlsx");
+      const rows = reportLeaves.map((leave) => {
+        const leaveStart = new Date(leave.startDate);
+        const leaveEnd = new Date(leave.endDate);
+        return {
+          Employee: leave.employee?.fullName ?? "-",
+          Username: leave.employee?.username ?? "-",
+          Site: leave.site?.name ?? "-",
+          LeaveType: leave.leaveType,
+          Status: leave.status,
+          StartDate: formatDate(leave.startDate),
+          EndDate: formatDate(leave.endDate),
+          Days: getInclusiveDays(leaveStart, leaveEnd),
+          Reason: leave.reason ?? "",
+          CreatedAt: leave.createdAt ? formatDate(leave.createdAt) : "-",
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Leave Report");
+
+      const fileName = `leave-report-${reportStartDate}-to-${reportEndDate}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      toast.success("Excel report exported");
+    } catch {
+      toast.error("Failed to export Excel report");
+    } finally {
+      setExportingReport(false);
+    }
+  };
+
   return (
     <div>
+      <Toaster position="top-right" />
       <div
         style={{
           background: `linear-gradient(135deg, ${roleColor}18 0%, #ffffff 100%)`,
@@ -128,7 +297,7 @@ export default function DashboardHome() {
           {user?.site ? ` · ${user.site.name}` : ""}
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          {user?.annualLeaveBalance !== undefined && (
+          {canSubmitLeave && user?.annualLeaveBalance !== undefined && (
             <MetricChip label="Annual Leave Left" value={`${user.annualLeaveBalance}`} color="#28a745" />
           )}
           {weeklyPresencePercentage !== null && (
@@ -148,10 +317,17 @@ export default function DashboardHome() {
           Quick Actions
         </h2>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <QuickAction href="/dashboard/leaves/new" label="+ New Leave Request" color="#007bff" />
-          <QuickAction href="/dashboard/leaves" label="View My Leaves" color="#6c757d" />
+          {canSubmitLeave ? (
+            <QuickAction href="/dashboard/leaves/new" label="+ New Leave Request" color="#007bff" />
+          ) : (
+            <QuickAction href="/dashboard/manage" label="Open Team Review" color="#007bff" />
+          )}
+          <QuickAction href="/dashboard/leaves" label={canSubmitLeave ? "View My Leaves" : "View Leave Log"} color="#6c757d" />
           {isManager && <QuickAction href="/dashboard/manage" label="Review Leaves" color="#28a745" />}
           {isManager && <QuickAction href="/dashboard/users" label="Manage Users" color="#6f42c1" />}
+          {(actsAsDepartmentHead || user?.role === "ADMIN") && (
+            <QuickAction href="/dashboard/sites" label="Manage Sites" color="#20c997" />
+          )}
           <QuickAction href="/dashboard/profile" label="Edit Profile" color="#fd7e14" />
         </div>
       </div>
@@ -163,13 +339,143 @@ export default function DashboardHome() {
         <StatCard label="Rejected" value={stats.rejected} color="#dc3545" />
       </div>
 
+      {(actsAsDepartmentHead || user?.role === "ADMIN") && sitePresenceRows.length > 0 && (
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "10px",
+            border: "1px solid #e0e0e0",
+            padding: "20px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+            marginBottom: "24px",
+          }}
+        >
+          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#333", fontWeight: "600" }}>
+            Presence By Site
+          </h2>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                  {[
+                    "Site",
+                    "Employees",
+                    "Weekly Presence",
+                    "Monthly Presence",
+                  ].map((header) => (
+                    <th key={header} style={siteTableHeaderStyle}>{header}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sitePresenceRows.map((row) => (
+                  <tr key={row.siteId} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <td style={siteTableCellStyle}>{row.siteName}</td>
+                    <td style={siteTableCellStyle}>{row.employees}</td>
+                    <td style={siteTableCellStyle}>{row.weekly}%</td>
+                    <td style={siteTableCellStyle}>{row.monthly}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {canExportReports && (
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "10px",
+            border: "1px solid #e0e0e0",
+            padding: "20px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+            marginBottom: "24px",
+          }}
+        >
+          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#333", fontWeight: "600" }}>
+            Excel Report
+          </h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(140px, 1fr))", gap: "12px", marginBottom: "12px" }}>
+            <div>
+              <label style={reportLabelStyle}>From Date</label>
+              <input
+                type="date"
+                value={reportStartDate}
+                onChange={(event) => setReportStartDate(event.target.value)}
+                style={reportInputStyle}
+              />
+            </div>
+            <div>
+              <label style={reportLabelStyle}>To Date</label>
+              <input
+                type="date"
+                value={reportEndDate}
+                onChange={(event) => setReportEndDate(event.target.value)}
+                style={reportInputStyle}
+              />
+            </div>
+            <div>
+              <label style={reportLabelStyle}>Site</label>
+              <select
+                value={reportSiteId}
+                onChange={(event) => setReportSiteId(event.target.value)}
+                style={reportInputStyle}
+              >
+                <option value="">All Sites</option>
+                {reportSites.map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={reportLabelStyle}>Employee</label>
+              <select
+                value={reportEmployeeId}
+                onChange={(event) => setReportEmployeeId(event.target.value)}
+                style={reportInputStyle}
+              >
+                <option value="">All Employees</option>
+                {reportEmployees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.fullName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            disabled={exportingReport}
+            style={{
+              backgroundColor: "#198754",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 16px",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: exportingReport ? "not-allowed" : "pointer",
+              opacity: exportingReport ? 0.7 : 1,
+            }}
+          >
+            {exportingReport ? "Exporting..." : "Export Excel"}
+          </button>
+        </div>
+      )}
+
       <div style={{ display: "grid", gap: "24px", marginBottom: "24px" }}>
-        <LeaveCalendar
-          title="My Interactive Calendar"
-          leaves={leaves}
-          emptyMessage="اختر يوماً من التقويم لمراجعة إجازاتك الشخصية."
-          accentColor={roleColor}
-        />
+        {canSubmitLeave && (
+          <LeaveCalendar
+            title="My Interactive Calendar"
+            leaves={leaves}
+            emptyMessage="اختر يوماً من التقويم لمراجعة إجازاتك الشخصية."
+            accentColor={roleColor}
+          />
+        )}
 
         {user?.role === "SUPERVISOR" && (
           <LeaveCalendar
@@ -192,9 +498,9 @@ export default function DashboardHome() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h2 style={{ margin: 0, fontSize: "16px", color: "#333", fontWeight: "600" }}>
-            Recent Leave Requests
+            {canSubmitLeave ? "Recent Leave Requests" : "Recent Team Leave Requests"}
           </h2>
-          <Link href="/dashboard/leaves" style={{ color: "#007bff", fontSize: "13px", textDecoration: "none" }}>
+          <Link href={canSubmitLeave ? "/dashboard/leaves" : "/dashboard/manage"} style={{ color: "#007bff", fontSize: "13px", textDecoration: "none" }}>
             View all
           </Link>
         </div>
@@ -204,26 +510,44 @@ export default function DashboardHome() {
         ) : recentLeaves.length === 0 ? (
           <div style={{ textAlign: "center", padding: "30px 0" }}>
             <div style={{ fontSize: "36px", marginBottom: "8px" }}>📋</div>
-            <div style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>No leave requests yet.</div>
-            <Link
-              href="/dashboard/leaves/new"
-              style={{
-                backgroundColor: "#007bff",
-                color: "white",
-                padding: "8px 20px",
-                borderRadius: "6px",
-                textDecoration: "none",
-                fontSize: "14px",
-              }}
-            >
-              Submit your first request
-            </Link>
+            <div style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>
+              {canSubmitLeave ? "No leave requests yet." : "No team leave requests found."}
+            </div>
+            {canSubmitLeave ? (
+              <Link
+                href="/dashboard/leaves/new"
+                style={{
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  padding: "8px 20px",
+                  borderRadius: "6px",
+                  textDecoration: "none",
+                  fontSize: "14px",
+                }}
+              >
+                Submit your first request
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard/manage"
+                style={{
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  padding: "8px 20px",
+                  borderRadius: "6px",
+                  textDecoration: "none",
+                  fontSize: "14px",
+                }}
+              >
+                Open review queue
+              </Link>
+            )}
           </div>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
             <thead>
               <tr>
-                {["Type", "Start", "End", "Status"].map((header) => (
+                {["Employee", "Site", "Type", "Start", "End", "Status"].map((header) => (
                   <th
                     key={header}
                     style={{
@@ -244,6 +568,8 @@ export default function DashboardHome() {
             <tbody>
               {recentLeaves.map((leave) => (
                 <tr key={leave.id}>
+                  <td style={{ padding: "10px 12px", color: "#333", fontWeight: "500" }}>{leave.employee?.fullName ?? "-"}</td>
+                  <td style={{ padding: "10px 12px", color: "#555" }}>{leave.site?.name ?? "-"}</td>
                   <td style={{ padding: "10px 12px", color: "#333", fontWeight: "500" }}>{leave.leaveType}</td>
                   <td style={{ padding: "10px 12px", color: "#555" }}>{formatDate(leave.startDate)}</td>
                   <td style={{ padding: "10px 12px", color: "#555" }}>{formatDate(leave.endDate)}</td>
@@ -320,6 +646,17 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function toInputDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getInclusiveDays(startDate: Date, endDate: Date) {
+  return Math.max(0, Math.floor((endDate.getTime() - startDate.getTime()) / 86400000) + 1);
+}
+
 function calculatePresencePercentage(
   employees: ManagedUser[],
   leaves: LeaveRequestItem[],
@@ -368,3 +705,35 @@ function calculatePresencePercentage(
 
   return Math.max(0, Math.round(((totalEmployeeDays - leaveDays.size) / totalEmployeeDays) * 100));
 }
+
+const siteTableHeaderStyle: React.CSSProperties = {
+  padding: "10px 12px",
+  textAlign: "left",
+  color: "#555",
+  fontWeight: 600,
+  borderBottom: "2px solid #e0e0e0",
+  whiteSpace: "nowrap",
+  fontSize: "13px",
+};
+
+const siteTableCellStyle: React.CSSProperties = {
+  padding: "10px 12px",
+  color: "#333",
+};
+
+const reportLabelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: "12px",
+  color: "#666",
+  marginBottom: "5px",
+};
+
+const reportInputStyle: React.CSSProperties = {
+  width: "100%",
+  border: "1px solid #d9d9d9",
+  borderRadius: "7px",
+  padding: "9px 10px",
+  fontSize: "13px",
+  color: "#333",
+  backgroundColor: "white",
+};
