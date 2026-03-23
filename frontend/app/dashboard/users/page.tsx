@@ -8,12 +8,7 @@ import { Card } from "../../components/Card";
 import { Alert } from "../../components/Alert";
 import { toast, Toaster } from "sonner";
 
-type Tab = "list" | "create" | "createSite";
-
-interface SitePayload {
-  name: string;
-  location: string;
-}
+type Tab = "list" | "create";
 
 const roleColors: Record<string, string> = {
   EMPLOYEE: "#007bff",
@@ -31,12 +26,9 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [deactivating, setDeactivating] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [managingSitesFor, setManagingSitesFor] = useState<string | null>(null);
-  const [selectedSupervisorSites, setSelectedSupervisorSites] = useState<string[]>([]);
 
   const canCreateEmployee = user?.role === "SUPERVISOR";
   const canCreateSupervisor = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
-  const canCreateSite = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead === true;
   const canManageSupervisors = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
   const canResetEmployeePasswords = user?.role === "SUPERVISOR";
 
@@ -50,7 +42,6 @@ export default function UsersPage() {
   };
 
   const [form, setForm] = useState<ManagedUserPayload>(defaultForm);
-  const [siteForm, setSiteForm] = useState<SitePayload>({ name: "", location: "" });
 
   const load = async () => {
     setLoading(true);
@@ -117,30 +108,6 @@ export default function UsersPage() {
     }
   };
 
-  const handleCreateSite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-    try {
-      await authService.createSite({
-        name: siteForm.name.trim(),
-        location: siteForm.location.trim(),
-      });
-      toast.success("Site created successfully");
-      setSiteForm({ name: "", location: "" });
-      setTab("list");
-      await load();
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Object && "response" in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-          : undefined;
-      setError(msg ?? "Failed to create site");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const toggleSupervisor = async (managedUser: ManagedUser) => {
     const enabling = managedUser.role !== "SUPERVISOR";
 
@@ -163,26 +130,6 @@ export default function UsersPage() {
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
       toast.error(msg ?? "Failed to update supervisor access");
-    }
-  };
-
-  const openSiteManager = (managedUser: ManagedUser) => {
-    setManagingSitesFor(managedUser.id);
-    setSelectedSupervisorSites((managedUser.supervisedSites ?? []).map((site) => site.id));
-  };
-
-  const saveSupervisorSites = async (userId: string) => {
-    try {
-      await authService.assignSupervisorSites({ userId, siteIds: selectedSupervisorSites });
-      toast.success("Supervisor sites updated");
-      setManagingSitesFor(null);
-      await load();
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Object && "response" in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-          : undefined;
-      toast.error(msg ?? "Failed to update supervisor sites");
     }
   };
 
@@ -228,11 +175,6 @@ export default function UsersPage() {
           {(canCreateEmployee || canCreateSupervisor) && (
             <button onClick={() => setTab(tab === "create" ? "list" : "create")} style={tabButtonStyle(tab === "create", "#007bff")}>
               {tab === "create" ? "← Back to List" : `+ Add ${canCreateEmployee ? "Employee" : "User"}`}
-            </button>
-          )}
-          {canCreateSite && (
-            <button onClick={() => setTab(tab === "createSite" ? "list" : "createSite")} style={tabButtonStyle(tab === "createSite", "#28a745")}>
-              {tab === "createSite" ? "← Back to List" : "+ Add Site"}
             </button>
           )}
         </div>
@@ -287,27 +229,6 @@ export default function UsersPage() {
         </Card>
       )}
 
-      {tab === "createSite" && canCreateSite && (
-        <Card title="Create Site" style={{ maxWidth: "560px" }}>
-          <form onSubmit={handleCreateSite}>
-            <label style={labelStyle}>Site Name *</label>
-            <input name="name" value={siteForm.name} onChange={(e) => setSiteForm((prev) => ({ ...prev, name: e.target.value }))} required style={inputStyle} />
-
-            <label style={labelStyle}>Location *</label>
-            <input name="location" value={siteForm.location} onChange={(e) => setSiteForm((prev) => ({ ...prev, location: e.target.value }))} required style={inputStyle} />
-
-            <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-              <button type="submit" disabled={submitting} style={primaryBtnStyle}>
-                {submitting ? "Creating..." : "Create Site"}
-              </button>
-              <button type="button" onClick={() => setTab("list")} style={secondaryBtnStyle}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        </Card>
-      )}
-
       {tab === "list" && (
         <Card>
           {loading ? (
@@ -319,18 +240,15 @@ export default function UsersPage() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
                 <thead>
                   <tr style={{ backgroundColor: "#f8f9fa" }}>
-                    {["Name", "Role", "Primary Site", "Supervised Sites", "Status", "Actions"].map((header) => (
+                    {["Name", "Role", "Primary Site", "Status", "Actions"].map((header) => (
                       <th key={header} style={thStyle}>{header}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((managedUser) => {
-                    const isManagingSites = managingSitesFor === managedUser.id;
-                    const siteNames = (managedUser.supervisedSites ?? []).map((site) => site.name);
                     return (
-                      <>
-                        <tr key={managedUser.id} style={{ borderBottom: isManagingSites ? "none" : "1px solid #f0f0f0", opacity: managedUser.isActive === false ? 0.6 : 1 }}>
+                      <tr key={managedUser.id} style={{ borderBottom: "1px solid #f0f0f0", opacity: managedUser.isActive === false ? 0.6 : 1 }}>
                           <td style={tdStyle}>
                             <div style={{ fontWeight: 600 }}>{managedUser.fullName}</div>
                             <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
@@ -346,7 +264,6 @@ export default function UsersPage() {
                             </div>
                           </td>
                           <td style={tdStyle}>{managedUser.site?.name ?? "-"}</td>
-                          <td style={tdStyle}>{siteNames.length > 0 ? siteNames.join(", ") : "-"}</td>
                           <td style={tdStyle}>
                             <span style={statusPillStyle(managedUser.isActive !== false)}>
                               {managedUser.isActive !== false ? "Active" : "Inactive"}
@@ -357,12 +274,6 @@ export default function UsersPage() {
                               {canManageSupervisors && managedUser.id !== user?.id && (managedUser.role === "EMPLOYEE" || managedUser.role === "SUPERVISOR") && (
                                 <button onClick={() => toggleSupervisor(managedUser)} style={outlineButtonStyle("#6f42c1")}>
                                   {managedUser.role === "SUPERVISOR" ? "Remove Supervisor" : "Make Supervisor"}
-                                </button>
-                              )}
-
-                              {canManageSupervisors && managedUser.role === "SUPERVISOR" && (
-                                <button onClick={() => openSiteManager(managedUser)} style={outlineButtonStyle("#0d6efd")}>
-                                  Manage Sites
                                 </button>
                               )}
 
@@ -386,56 +297,6 @@ export default function UsersPage() {
                             </div>
                           </td>
                         </tr>
-
-                        {isManagingSites && (
-                          <tr key={`${managedUser.id}-sites`} style={{ backgroundColor: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
-                            <td colSpan={6} style={{ padding: "16px" }}>
-                              <div style={{ maxWidth: "820px" }}>
-                                <div style={{ fontWeight: 600, color: "#333", marginBottom: "10px" }}>
-                                  Assign supervised sites to {managedUser.fullName}
-                                </div>
-                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px", marginBottom: "14px" }}>
-                                  {sites.map((site) => {
-                                    const occupiedByOther = !!site.supervisorId && site.supervisorId !== managedUser.id;
-                                    return (
-                                      <label key={site.id} style={checkboxCardStyle(occupiedByOther)}>
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedSupervisorSites.includes(site.id)}
-                                          disabled={occupiedByOther}
-                                          onChange={(event) => {
-                                            setSelectedSupervisorSites((prev) => {
-                                              if (event.target.checked) {
-                                                return [...prev, site.id];
-                                              }
-                                              return prev.filter((value) => value !== site.id);
-                                            });
-                                          }}
-                                        />
-                                        <div>
-                                          <div style={{ fontWeight: 600, color: "#333" }}>{site.name}</div>
-                                          <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
-                                            {site.location}
-                                            {occupiedByOther ? " · already assigned" : ""}
-                                          </div>
-                                        </div>
-                                      </label>
-                                    );
-                                  })}
-                                </div>
-                                <div style={{ display: "flex", gap: "10px" }}>
-                                  <button onClick={() => saveSupervisorSites(managedUser.id)} style={primaryBtnStyle}>
-                                    Save Sites
-                                  </button>
-                                  <button onClick={() => setManagingSitesFor(null)} style={secondaryBtnStyle}>
-                                    Close
-                                  </button>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </>
                     );
                   })}
                 </tbody>
@@ -534,17 +395,6 @@ const outlineButtonStyle = (color: string): React.CSSProperties => ({
   borderRadius: "6px",
   cursor: "pointer",
   fontSize: "12px",
-});
-
-const checkboxCardStyle = (disabled: boolean): React.CSSProperties => ({
-  display: "flex",
-  gap: "10px",
-  alignItems: "flex-start",
-  padding: "12px",
-  border: `1px solid ${disabled ? "#ececec" : "#dbe4ff"}`,
-  borderRadius: "10px",
-  backgroundColor: disabled ? "#f8f9fa" : "white",
-  opacity: disabled ? 0.7 : 1,
 });
 
 const tabButtonStyle = (active: boolean, color: string): React.CSSProperties => ({
