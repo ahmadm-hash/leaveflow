@@ -93,12 +93,22 @@ export const leaveController = {
         });
 
         if (!department) {
-          department = await prisma.department.upsert({
-            where: { name: "General" },
-            update: {},
-            create: { name: "General" },
-            select: { id: true },
-          });
+          try {
+            department = await prisma.department.create({
+              data: { name: "General" },
+              select: { id: true },
+            });
+          } catch {
+            department = await prisma.department.findUnique({
+              where: { name: "General" },
+              select: { id: true },
+            });
+          }
+
+          if (!department) {
+            res.status(500).json({ message: "Failed to initialize default department" });
+            return;
+          }
         }
       }
 
