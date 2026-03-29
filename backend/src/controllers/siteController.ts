@@ -11,18 +11,31 @@ export const siteController = {
           id: true,
           name: true,
           location: true,
-          supervisorId: true,
-          supervisor: {
+          supervisors: {
             select: {
-              id: true,
-              fullName: true,
+              supervisor: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  username: true,
+                },
+              },
             },
           },
         },
         orderBy: { name: "asc" },
       });
 
-      res.json({ sites });
+      // Transform to include first supervisor info for backward compatibility
+      const transformedSites = sites.map((site) => ({
+        id: site.id,
+        name: site.name,
+        location: site.location,
+        supervisors: site.supervisors.map((s) => s.supervisor),
+        supervisor: site.supervisors[0]?.supervisor || null, // First supervisor for backward compat
+      }));
+
+      res.json({ sites: transformedSites });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch sites", error });
     }

@@ -106,7 +106,7 @@ export const authController = {
       let canSupervisorResetEmployee = false;
       if (!canResetAnyPassword && !isSelfReset && req.user.role === "SUPERVISOR") {
         const supervisedSites = await prisma.site.findMany({
-          where: { supervisorId: req.user.userId },
+          where: { supervisors: { some: { userId: req.user.userId } } },
           select: { id: true },
         });
 

@@ -172,7 +172,7 @@ export default function SitesPage() {
             <table className="brand-table">
               <thead>
                 <tr style={{ backgroundColor: "#fff8f0" }}>
-                  {["Site", "Location", "Assigned Supervisor"].map((header) => (
+                  {["Site", "Location", "Assigned Supervisors"].map((header) => (
                     <th key={header} style={thStyle}>{header}</th>
                   ))}
                 </tr>
@@ -182,7 +182,11 @@ export default function SitesPage() {
                   <tr key={site.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
                     <td style={tdStyle}>{site.name}</td>
                     <td style={tdStyle}>{site.location}</td>
-                    <td style={tdStyle}>{site.supervisor?.fullName ?? "-"}</td>
+                    <td style={tdStyle}>
+                      {site.supervisors && site.supervisors.length > 0
+                        ? site.supervisors.map((s) => s.fullName).join(", ")
+                        : "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -226,13 +230,14 @@ export default function SitesPage() {
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px", marginBottom: "14px" }}>
                           {sites.map((site) => {
-                            const occupiedByOther = !!site.supervisorId && site.supervisorId !== managedUser.id;
+                            const otherSupervisors = (site.supervisors ?? []).filter((s) => s.id !== managedUser.id);
+                            const isAssignedToOther = otherSupervisors.length > 0;
                             return (
-                              <label key={site.id} style={checkboxCardStyle(occupiedByOther)}>
+                              <label key={site.id} style={checkboxCardStyle(isAssignedToOther)}>
                                 <input
                                   type="checkbox"
                                   checked={selectedSupervisorSites.includes(site.id)}
-                                  disabled={occupiedByOther}
+                                  disabled={isAssignedToOther}
                                   onChange={(event) => {
                                     setSelectedSupervisorSites((prev) => {
                                       if (event.target.checked) {
@@ -246,7 +251,9 @@ export default function SitesPage() {
                                   <div style={{ fontWeight: 600, color: "#1d2751" }}>{site.name}</div>
                                   <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "4px" }}>
                                     {site.location}
-                                    {occupiedByOther ? " · already assigned" : ""}
+                                    {isAssignedToOther
+                                      ? ` · assigned to ${otherSupervisors.map((s) => s.fullName).join(", ")}`
+                                      : ""}
                                   </div>
                                 </div>
                               </label>

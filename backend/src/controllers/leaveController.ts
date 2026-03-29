@@ -16,12 +16,12 @@ const formatDate = (date: Date): string =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
 const getSupervisedSiteIds = async (supervisorId: string): Promise<string[]> => {
-  const sites = await prisma.site.findMany({
-    where: { supervisorId },
-    select: { id: true },
+  const links = await prisma.siteSupervisor.findMany({
+    where: { userId: supervisorId },
+    select: { siteId: true },
   });
 
-  return sites.map((site) => site.id);
+  return links.map((link) => link.siteId);
 };
 
 const hasDepartmentHeadPrivileges = (req: Request): boolean =>

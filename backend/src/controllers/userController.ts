@@ -6,13 +6,12 @@ const prisma = new PrismaClient();
 const VALID_ROLES = ["EMPLOYEE", "SUPERVISOR", "DEPARTMENT_HEAD", "ADMIN"] as const;
 
 const getSupervisedSiteIds = async (supervisorId: string): Promise<string[]> => {
-  const sites = await prisma.site.findMany({
-    where: { supervisorId },
-    select: { id: true },
-    orderBy: { name: "asc" },
+  const links = await prisma.siteSupervisor.findMany({
+    where: { userId: supervisorId },
+    select: { siteId: true },
   });
 
-  return sites.map((site) => site.id);
+  return links.map((link) => link.siteId);
 };
 
 const userSelect = {
@@ -34,11 +33,15 @@ const userSelect = {
   },
   supervisedSites: {
     select: {
-      id: true,
-      name: true,
-      location: true,
+      site: {
+        select: {
+          id: true,
+          name: true,
+          location: true,
+        },
+      },
     },
-    orderBy: { name: "asc" },
+    orderBy: { site: { name: "asc" } },
   },
 } satisfies Prisma.UserSelect;
 
@@ -69,20 +72,24 @@ const hydrateUserRows = async (rows: UserScalarRow[]) => {
           select: { id: true, name: true, location: true },
         })
       : Promise.resolve([]),
-    prisma.site.findMany({
-      where: { supervisorId: { in: userIds } },
-      select: { id: true, name: true, location: true, supervisorId: true },
-      orderBy: { name: "asc" },
-    }),
+    userIds.length > 0
+      ? prisma.siteSupervisor.findMany({
+          where: { userId: { in: userIds } },
+          select: {
+            userId: true,
+            site: { select: { id: true, name: true, location: true } },
+          },
+          orderBy: { site: { name: "asc" } },
+        })
+      : Promise.resolve([]),
   ]);
 
   const siteById = new Map(sites.map((s) => [s.id, s]));
   const supervisedSitesByUser = new Map<string, { id: string; name: string; location: string }[]>();
-  for (const site of supervisorSiteLinks) {
-    if (!site.supervisorId) continue;
-    const current = supervisedSitesByUser.get(site.supervisorId) ?? [];
-    current.push({ id: site.id, name: site.name, location: site.location });
-    supervisedSitesByUser.set(site.supervisorId, current);
+  for (const link of supervisorSiteLinks) {
+    const current = supervisedSitesByUser.get(link.userId) ?? [];
+    current.push(link.site);
+    supervisedSitesByUser.set(link.userId, current);
   }
 
   return rows.map((row) => ({
@@ -287,7 +294,7 @@ export const userController = {
       if (assignedSiteId) {
         const site = await prisma.site.findUnique({
           where: { id: assignedSiteId },
-          select: { id: true, supervisorId: true },
+          select: { id: true },
         });
 
         if (!site) {
@@ -295,9 +302,14 @@ export const userController = {
           return;
         }
 
-        if (role === "SUPERVISOR" && site.supervisorId) {
-          res.status(400).json({ message: "This site already has an assigned supervisor" });
-          return;
+        if (role === "SUPERVISOR") {
+          const hasOtherSupervisor = await prisma.siteSupervisor.findFirst({
+            where: { siteId: assignedSiteId },
+          });
+          if (hasOtherSupervisor) {
+            res.status(400).json({ message: "This site already has an assigned supervisor" });
+            return;
+          }
         }
       }
 
@@ -329,9 +341,11 @@ export const userController = {
         });
 
         if (role === "SUPERVISOR" && assignedSiteId) {
-          await transaction.site.update({
-            where: { id: assignedSiteId },
-            data: { supervisorId: user.id },
+          await transaction.siteSupervisor.create({
+            data: {
+              siteId: assignedSiteId,
+              userId: user.id,
+            },
           });
         }
 
@@ -357,9 +371,8 @@ export const userController = {
           data: { isActive: false, delegatedDepartmentHead: false },
         });
 
-        await transaction.site.updateMany({
-          where: { supervisorId: userId },
-          data: { supervisorId: null },
+        await transaction.siteSupervisor.deleteMany({
+          where: { userId },
         });
       });
 
@@ -411,7 +424,7 @@ export const userController = {
 
         const site = await prisma.site.findUnique({
           where: { id: resolvedPrimarySiteId },
-          select: { id: true, supervisorId: true },
+          select: { id: true },
         });
 
         if (!site) {
@@ -419,7 +432,14 @@ export const userController = {
           return;
         }
 
-        if (site.supervisorId && site.supervisorId !== userId) {
+        const existingLink = await prisma.siteSupervisor.findFirst({
+          where: {
+            siteId: resolvedPrimarySiteId,
+            NOT: { userId },
+          },
+        });
+
+        if (existingLink) {
           res.status(400).json({ message: "This site already has an assigned supervisor" });
           return;
         }
@@ -433,10 +453,17 @@ export const userController = {
             },
           });
 
-          await transaction.site.update({
-            where: { id: resolvedPrimarySiteId },
-            data: { supervisorId: userId },
+          const existing = await transaction.siteSupervisor.findUnique({
+            where: { siteId_userId: { siteId: resolvedPrimarySiteId, userId } },
           });
+          if (!existing) {
+            await transaction.siteSupervisor.create({
+              data: {
+                siteId: resolvedPrimarySiteId,
+                userId,
+              },
+            });
+          }
         });
 
         res.json({ message: "Supervisor access enabled successfully" });
@@ -452,9 +479,8 @@ export const userController = {
           },
         });
 
-        await transaction.site.updateMany({
-          where: { supervisorId: userId },
-          data: { supervisorId: null },
+        await transaction.siteSupervisor.deleteMany({
+          where: { userId },
         });
       });
 
@@ -477,7 +503,7 @@ export const userController = {
 
       const supervisor = await prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, role: true, siteId: true },
+        select: { id: true, role: true },
       });
 
       if (!supervisor || supervisor.role !== "SUPERVISOR") {
@@ -485,43 +511,47 @@ export const userController = {
         return;
       }
 
+      // Validate all sites exist
       if (normalizedSiteIds.length > 0) {
-        const conflictingSites = await prisma.site.findMany({
-          where: {
-            id: { in: normalizedSiteIds },
-            NOT: { OR: [{ supervisorId: null }, { supervisorId: userId }] },
-          },
-          select: { name: true },
+        const existingSites = await prisma.site.findMany({
+          where: { id: { in: normalizedSiteIds } },
+          select: { id: true },
         });
 
-        if (conflictingSites.length > 0) {
-          res.status(400).json({
-            message: `Some sites already have other supervisors assigned: ${conflictingSites.map((site) => site.name).join(", ")}`,
-          });
+        if (existingSites.length !== normalizedSiteIds.length) {
+          res.status(400).json({ message: "Some sites do not exist" });
           return;
         }
       }
 
-      await prisma.$transaction(async (transaction: Prisma.TransactionClient) => {
-        await transaction.site.updateMany({
-          where: {
-            supervisorId: userId,
-            ...(normalizedSiteIds.length > 0 ? { id: { notIn: normalizedSiteIds } } : {}),
-          },
-          data: { supervisorId: null },
+      await prisma.$transaction(async (transaction) => {
+        // Remove all existing site assignments for this supervisor
+        await transaction.siteSupervisor.deleteMany({
+          where: { userId },
         });
 
+        // Create new site assignments
         if (normalizedSiteIds.length > 0) {
-          await transaction.site.updateMany({
-            where: { id: { in: normalizedSiteIds } },
-            data: { supervisorId: userId },
+          await transaction.siteSupervisor.createMany({
+            data: normalizedSiteIds.map((siteId) => ({
+              siteId,
+              userId,
+            })),
+            skipDuplicates: true,
+          });
+
+          // Update user's primary site to first assigned site
+          await transaction.user.update({
+            where: { id: userId },
+            data: { siteId: normalizedSiteIds[0] },
+          });
+        } else {
+          // Clear primary site if no sites assigned
+          await transaction.user.update({
+            where: { id: userId },
+            data: { siteId: null },
           });
         }
-
-        await transaction.user.update({
-          where: { id: userId },
-          data: { siteId: normalizedSiteIds[0] ?? null },
-        });
       });
 
       res.json({ message: "Supervisor sites updated successfully" });

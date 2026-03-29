@@ -21,16 +21,30 @@ model Site {
   location     String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  supervisorId String?
 
   // Relations
-  supervisor    User?          @relation("SiteSupervisor", fields: [supervisorId], references: [id])
   employees     User[]         @relation("SiteEmployees")
+  supervisors   SiteSupervisor[]
   leaveRequests LeaveRequest[]
 
-  @@index([supervisorId])
-
   @@map("sites")
+}
+
+// Junction table for many-to-many Site-Supervisor relationship
+model SiteSupervisor {
+  id         String   @id @default(cuid())
+  siteId     String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  site       Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  supervisor User     @relation("SiteSupervisors", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, userId])
+  @@index([siteId])
+  @@index([userId])
+  @@map("site_supervisors")
 }
 
 // User Model
@@ -54,7 +68,7 @@ model User {
   site            Site?          @relation("SiteEmployees", fields: [siteId], references: [id])
   siteId          String?
   leaveRequests   LeaveRequest[] @relation("EmployeeLeaves")
-  supervisedSites Site[]         @relation("SiteSupervisor")
+  supervisedSites SiteSupervisor[] @relation("SiteSupervisors")
   departmentLeads Department[]   @relation("DepartmentHead")
   leaveReviews    LeaveReview[]  @relation("ReviewerLeaves")
   auditLogs       AuditLog[]

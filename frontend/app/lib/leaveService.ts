@@ -35,8 +35,8 @@ export interface Site {
   id: string;
   name: string;
   location: string;
-  supervisorId?: string | null;
   supervisor?: { id: string; fullName: string } | null;
+  supervisors?: Array<{ id: string; fullName: string; username: string }>;
 }
 
 export const leaveService = {
