@@ -22,7 +22,7 @@ export default function ManageLeavesPage() {
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const fetchLeavesWithRetry = async (attempts = 3): Promise<LeaveRequestItem[]> => {
+  const fetchLeavesWithRetry = async (attempts = 8): Promise<LeaveRequestItem[]> => {
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -32,7 +32,8 @@ export default function ManageLeavesPage() {
       } catch (error) {
         lastError = error;
         if (attempt < attempts) {
-          await sleep(350 * attempt);
+          // Backoff helps ride through short backend instability windows.
+          await sleep(Math.min(250 * attempt * attempt, 2200));
         }
       }
     }
