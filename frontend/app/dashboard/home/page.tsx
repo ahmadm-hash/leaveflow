@@ -244,12 +244,12 @@ export default function DashboardHome() {
   const dashboardLeaves = canSubmitLeave ? leaves : managedLeaves;
 
   const roleColors: Record<string, string> = {
-    EMPLOYEE: "#007bff",
-    SUPERVISOR: "#6f42c1",
-    DEPARTMENT_HEAD: "#fd7e14",
-    ADMIN: "#dc3545",
+    EMPLOYEE: "#20cc76",
+    SUPERVISOR: "#2633ff",
+    DEPARTMENT_HEAD: "#052976",
+    ADMIN: "#8142ff",
   };
-  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#007bff";
+  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#052976";
 
   const stats = {
     total: dashboardLeaves.length,
@@ -337,7 +337,7 @@ export default function DashboardHome() {
       <Toaster position="top-right" />
       <div
         style={{
-          background: `linear-gradient(135deg, ${roleColor}18 0%, #ffffff 100%)`,
+          background: `linear-gradient(135deg, ${roleColor}18 0%, #ffffff 48%, #f4eee9 100%)`,
           border: `1px solid ${roleColor}30`,
           borderRadius: "12px",
           padding: "24px",
@@ -354,16 +354,16 @@ export default function DashboardHome() {
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
           {canSubmitLeave && user?.annualLeaveBalance !== undefined && (
-            <MetricChip label="Annual Leave Left" value={`${user.annualLeaveBalance}`} color="#28a745" />
+            <MetricChip label="Annual Leave Left" value={`${user.annualLeaveBalance}`} color="#20cc76" />
           )}
           {weeklyPresencePercentage !== null && (
-            <MetricChip label="Weekly Presence" value={`${weeklyPresencePercentage}%`} color="#20c997" />
+            <MetricChip label="Weekly Presence" value={`${weeklyPresencePercentage}%`} color="#4cc4ff" />
           )}
           {monthlyPresencePercentage !== null && (
-            <MetricChip label="Monthly Presence" value={`${monthlyPresencePercentage}%`} color="#0d6efd" />
+            <MetricChip label="Monthly Presence" value={`${monthlyPresencePercentage}%`} color="#2633ff" />
           )}
           {actsAsDepartmentHead && (
-            <MetricChip label="Delegated Authority" value="Enabled" color="#fd7e14" />
+            <MetricChip label="Delegated Authority" value="Enabled" color="#bc9470" />
           )}
         </div>
       </div>
@@ -374,24 +374,24 @@ export default function DashboardHome() {
         </h2>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           {canSubmitLeave ? (
-            <QuickAction href="/dashboard/leaves/new" label="+ New Leave Request" color="#007bff" />
+            <QuickAction href="/dashboard/leaves/new" label="+ New Leave Request" color="#052976" />
           ) : (
-            <QuickAction href="/dashboard/manage" label="Open Team Review" color="#007bff" />
+            <QuickAction href="/dashboard/manage" label="Open Team Review" color="#052976" />
           )}
           <QuickAction href="/dashboard/leaves" label={canSubmitLeave ? "View My Leaves" : "View Leave Log"} color="#6c757d" />
-          {isManager && <QuickAction href="/dashboard/manage" label="Review Leaves" color="#28a745" />}
-          {isManager && <QuickAction href="/dashboard/users" label="Manage Users" color="#6f42c1" />}
+          {isManager && <QuickAction href="/dashboard/manage" label="Review Leaves" color="#20cc76" />}
+          {isManager && <QuickAction href="/dashboard/users" label="Manage Users" color="#8142ff" />}
           {(actsAsDepartmentHead || user?.role === "ADMIN") && (
-            <QuickAction href="/dashboard/sites" label="Manage Sites" color="#20c997" />
+            <QuickAction href="/dashboard/sites" label="Manage Sites" color="#4cc4ff" />
           )}
-          <QuickAction href="/dashboard/profile" label="Edit Profile" color="#fd7e14" />
+          <QuickAction href="/dashboard/profile" label="Edit Profile" color="#bc9470" />
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
-        <StatCard label="Total Requests" value={stats.total} color="#6c757d" />
-        <StatCard label="Pending" value={stats.pending} color="#ffc107" />
-        <StatCard label="Approved" value={stats.approved} color="#28a745" />
+        <StatCard label="Total Requests" value={stats.total} color="#103576" />
+        <StatCard label="Pending" value={stats.pending} color="#bc9470" />
+        <StatCard label="Approved" value={stats.approved} color="#20cc76" />
         <StatCard label="Rejected" value={stats.rejected} color="#dc3545" />
       </div>
 
@@ -641,7 +641,7 @@ export default function DashboardHome() {
           <h2 style={{ margin: 0, fontSize: "16px", color: "#333", fontWeight: "600" }}>
             {canSubmitLeave ? "Recent Leave Requests" : "Recent Team Leave Requests"}
           </h2>
-          <Link href={canSubmitLeave ? "/dashboard/leaves" : "/dashboard/manage"} style={{ color: "#007bff", fontSize: "13px", textDecoration: "none" }}>
+          <Link href={canSubmitLeave ? "/dashboard/leaves" : "/dashboard/manage"} style={{ color: "#052976", fontSize: "13px", textDecoration: "none" }}>
             View all
           </Link>
         </div>
@@ -658,7 +658,7 @@ export default function DashboardHome() {
               <Link
                 href="/dashboard/leaves/new"
                 style={{
-                  backgroundColor: "#007bff",
+                  backgroundColor: "#052976",
                   color: "white",
                   padding: "8px 20px",
                   borderRadius: "6px",
@@ -672,7 +672,7 @@ export default function DashboardHome() {
               <Link
                 href="/dashboard/manage"
                 style={{
-                  backgroundColor: "#007bff",
+                  backgroundColor: "#052976",
                   color: "white",
                   padding: "8px 20px",
                   borderRadius: "6px",

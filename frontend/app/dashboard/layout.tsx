@@ -15,8 +15,8 @@ function NavItem({ href, label, active }: { href: string; label: string; active:
         display: "block",
         padding: "9px 12px",
         borderRadius: "6px",
-        color: active ? "#0d3d2a" : "#485850",
-        backgroundColor: active ? "#e8f3ed" : "transparent",
+        color: active ? "#052976" : "#4a5676",
+        backgroundColor: active ? "#eef4ff" : "transparent",
         textDecoration: "none",
         fontSize: "14px",
         fontWeight: active ? "600" : "400",
@@ -92,40 +92,40 @@ export default function DashboardLayout({
   const canUseSitesPage = canUseDepartmentHeadTools;
 
   const roleColors: Record<string, string> = {
-    EMPLOYEE: "#126343",
-    SUPERVISOR: "#0d3d2a",
-    DEPARTMENT_HEAD: "#b89447",
-    ADMIN: "#7a1f1f",
+    EMPLOYEE: "#20cc76",
+    SUPERVISOR: "#2633ff",
+    DEPARTMENT_HEAD: "#052976",
+    ADMIN: "#8142ff",
   };
-  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#126343";
+  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#052976";
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f4efe5" }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f4eee9" }}>
       {/* Sidebar */}
       <div
         style={{
           width: "240px",
           minWidth: "240px",
-          backgroundColor: "#fffdf8",
-          borderRight: "1px solid #e7dcc4",
+          backgroundColor: "#fffdf9",
+          borderRight: "1px solid #dcc8b6",
           padding: "0",
-          boxShadow: "2px 0 12px rgba(13, 61, 42, 0.08)",
+          boxShadow: "2px 0 14px rgba(5, 41, 118, 0.08)",
           display: "flex",
           flexDirection: "column",
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid #efe6d3" }}>
+        <div style={{ padding: "18px 16px 14px", borderBottom: "1px solid #ebe1d2" }}>
           <Link href="/dashboard/home" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
-            <span className="brand-mark">RC</span>
-            <span style={{ fontSize: "17px", fontWeight: "700", color: "#0d3d2a", lineHeight: 1.2 }}>
-              Royal Commission
+            <img src="/brand/rcjy-mark.png" alt="RCJY mark" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
+            <span style={{ fontSize: "15px", fontWeight: "700", color: "#052976", lineHeight: 1.2 }}>
+              RC Jubail & Yanbu
             </span>
           </Link>
         </div>
 
         {/* User card */}
-        <div style={{ padding: "16px", borderBottom: "1px solid #efe6d3" }}>
+        <div style={{ padding: "16px", borderBottom: "1px solid #ebe1d2" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div
               style={{
@@ -145,7 +145,7 @@ export default function DashboardLayout({
               {user?.fullName?.[0]?.toUpperCase() ?? "?"}
             </div>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ fontSize: "13px", fontWeight: "600", color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "#1d2751", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {user?.fullName}
               </div>
               <span
@@ -166,7 +166,7 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <nav style={{ padding: "12px 8px", flex: 1 }}>
-          <div style={{ fontSize: "11px", fontWeight: "600", color: "#aaa", padding: "4px 12px 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          <div style={{ fontSize: "11px", fontWeight: "600", color: "#8c7a69", padding: "4px 12px 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
             Main
           </div>
           <NavItem href="/dashboard/home" label="🏠 Dashboard" active={pathname === "/dashboard/home"} />
@@ -175,7 +175,7 @@ export default function DashboardLayout({
 
           {isManager && (
             <>
-              <div style={{ fontSize: "11px", fontWeight: "600", color: "#aaa", padding: "12px 12px 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: "#8c7a69", padding: "12px 12px 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                 Management
               </div>
               <NavItem href="/dashboard/manage" label="✅ Review Leaves" active={pathname === "/dashboard/manage"} />
@@ -190,7 +190,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* Logout */}
-        <div style={{ padding: "12px 8px", borderTop: "1px solid #efe6d3" }}>
+        <div style={{ padding: "12px 8px", borderTop: "1px solid #ebe1d2" }}>
           <button
             onClick={handleLogout}
             style={{

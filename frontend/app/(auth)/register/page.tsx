@@ -8,7 +8,7 @@ export default function RegisterPage() {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "linear-gradient(140deg, #f7f3e9 0%, #f0e8d8 45%, #eef6f2 100%)",
+        background: "linear-gradient(145deg, #fff9f3 0%, #f4eee9 42%, #eef4ff 100%)",
       }}
     >
       <div
@@ -16,19 +16,19 @@ export default function RegisterPage() {
           backgroundColor: "#fffdf8",
           padding: "40px",
           borderRadius: "14px",
-          boxShadow: "0 14px 34px rgba(13, 61, 42, 0.15)",
-          border: "1px solid #eadfc7",
+          boxShadow: "0 18px 40px rgba(5, 41, 118, 0.12)",
+          border: "1px solid #dcc8b6",
           width: "100%",
-          maxWidth: "400px",
+          maxWidth: "460px",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
-          <span className="brand-mark">RC</span>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "18px" }}>
+          <img src="/brand/rcjy-logo.png" alt="Royal Commission for Jubail and Yanbu" style={{ width: "100%", maxWidth: "340px", height: "auto" }} />
         </div>
-        <h1 style={{ textAlign: "center", marginBottom: "8px", color: "#0d3d2a", fontSize: "26px" }}>
-          Royal Commission LeaveFlow
+        <h1 style={{ textAlign: "center", marginBottom: "8px", color: "#052976", fontSize: "24px" }}>
+          LeaveFlow Portal
         </h1>
-        <h2 style={{ textAlign: "center", fontSize: "20px", marginBottom: "20px", color: "#6a5b3b" }}>
+        <h2 style={{ textAlign: "center", fontSize: "20px", marginBottom: "20px", color: "#103576" }}>
           Registration Closed
         </h2>
 
@@ -42,7 +42,7 @@ export default function RegisterPage() {
             Already have an account?{" "}
             <a
               href="/login"
-              style={{ color: "#126343", textDecoration: "none", fontWeight: 600 }}
+              style={{ color: "#052976", textDecoration: "none", fontWeight: 600 }}
             >
               Login here
             </a>

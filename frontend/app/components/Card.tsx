@@ -12,15 +12,15 @@ export function Card({ title, children, style }: CardProps) {
       style={{
         backgroundColor: "white",
         borderRadius: "8px",
-        border: "1px solid #e0e0e0",
+        border: "1px solid #dcc8b6",
         padding: "20px",
         marginBottom: "20px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+        boxShadow: "0 8px 22px rgba(5,41,118,0.06)",
         ...style,
       }}
     >
       {title && (
-        <h2 style={{ margin: "0 0 16px 0", fontSize: "18px", color: "#333", fontWeight: "600" }}>
+        <h2 style={{ margin: "0 0 16px 0", fontSize: "18px", color: "#052976", fontWeight: "600" }}>
           {title}
         </h2>
       )}
@@ -35,16 +35,16 @@ interface StatCardProps {
   color?: string;
 }
 
-export function StatCard({ label, value, color = "#007bff" }: StatCardProps) {
+export function StatCard({ label, value, color = "#052976" }: StatCardProps) {
   return (
     <div
       style={{
         backgroundColor: "white",
         borderRadius: "8px",
-        border: `1px solid #e0e0e0`,
+        border: `1px solid #dcc8b6`,
         padding: "20px",
         textAlign: "center",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+        boxShadow: "0 8px 22px rgba(5,41,118,0.06)",
         borderTop: `3px solid ${color}`,
       }}
     >
