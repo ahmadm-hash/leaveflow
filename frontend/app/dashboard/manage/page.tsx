@@ -35,10 +35,16 @@ export default function ManageLeavesPage() {
 
   useEffect(() => { load(); }, []);
 
-  const canReview = (status: string) => {
+  const canReview = (leave: LeaveRequestItem) => {
+    const status = leave.status;
+
     if (user?.role === "SUPERVISOR") return status === "PENDING";
     if (user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead) {
-      return status === "APPROVED_BY_SUPERVISOR" || status === "CANCELLATION_REQUESTED";
+      return (
+        status === "APPROVED_BY_SUPERVISOR" ||
+        status === "CANCELLATION_REQUESTED" ||
+        (status === "PENDING" && leave.employee?.role === "SUPERVISOR")
+      );
     }
     if (user?.role === "ADMIN") {
       return status === "PENDING" || status === "APPROVED_BY_SUPERVISOR" || status === "CANCELLATION_REQUESTED";
@@ -174,7 +180,7 @@ export default function ManageLeavesPage() {
                           <StatusBadge status={leave.status} />
                         </td>
                         <td style={tdStyle}>
-                          {canReview(leave.status) && !isReviewing && (
+                          {canReview(leave) && !isReviewing && (
                             <button
                               onClick={() => setReviewingId(leave.id)}
                               style={{

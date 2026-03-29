@@ -18,7 +18,7 @@ export interface LeaveRequestItem {
   reason?: string;
   documentUrl?: string;
   createdAt?: string;
-  employee?: { id: string; fullName: string; username: string };
+  employee?: { id: string; fullName: string; username: string; role?: string };
   department?: { id: string; name: string };
   site?: { id: string; name: string };
   leaveReview?: { id: string; comment: string | null; reviewedAt: string; role: string }[];

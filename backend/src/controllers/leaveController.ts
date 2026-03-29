@@ -24,7 +24,7 @@ const hasDepartmentHeadPrivileges = (req: Request): boolean =>
 
 const leaveInclude = {
   employee: {
-    select: { id: true, fullName: true, username: true },
+    select: { id: true, fullName: true, username: true, role: true },
   },
   department: {
     select: { id: true, name: true },
@@ -365,6 +365,11 @@ export const leaveController = {
           employeeId: true,
           siteId: true,
           statusBeforeCancellation: true,
+          employee: {
+            select: {
+              role: true,
+            },
+          },
         },
       });
 
@@ -380,6 +385,10 @@ export const leaveController = {
       const reviewerUserId = req.user.userId;
       const reviewerRole = req.user.role;
       const canReviewPending = req.user.role === "SUPERVISOR" && supervisedSiteIds.includes(leaveRequest.siteId);
+      const canReviewSupervisorPendingAsDepartmentHead =
+        canActAsDepartmentHead &&
+        leaveRequest.status === "PENDING" &&
+        leaveRequest.employee.role === "SUPERVISOR";
       const canReviewDepartmentStage =
         canActAsDepartmentHead && leaveRequest.status === "APPROVED_BY_SUPERVISOR";
       const canReviewCancellation =
@@ -390,6 +399,7 @@ export const leaveController = {
 
       if (
         !(canReviewPending && leaveRequest.status === "PENDING") &&
+        !canReviewSupervisorPendingAsDepartmentHead &&
         !canReviewDepartmentStage &&
         !canReviewCancellation &&
         !adminCanAdvance
@@ -445,6 +455,8 @@ export const leaveController = {
         let newStatus: string;
         if (action === "reject") {
           newStatus = "REJECTED";
+        } else if (canReviewSupervisorPendingAsDepartmentHead) {
+          newStatus = "APPROVED_BY_DEPARTMENT_HEAD";
         } else if (canActAsDepartmentHead && leaveRequest.status === "APPROVED_BY_SUPERVISOR") {
           newStatus = "APPROVED_BY_DEPARTMENT_HEAD";
         } else if (reviewerRole === "SUPERVISOR") {
