@@ -20,12 +20,32 @@ export default function ManageLeavesPage() {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const fetchLeavesWithRetry = async (attempts = 3): Promise<LeaveRequestItem[]> => {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const data = await leaveService.getAllLeaveRequests();
+        return data.leaveRequests ?? [];
+      } catch (error) {
+        lastError = error;
+        if (attempt < attempts) {
+          await sleep(350 * attempt);
+        }
+      }
+    }
+
+    throw lastError;
+  };
+
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await leaveService.getAllLeaveRequests();
-      setLeaves(data.leaveRequests ?? []);
+      const leaveRequests = await fetchLeavesWithRetry();
+      setLeaves(leaveRequests);
     } catch {
       setError("Failed to load leave requests");
     } finally {
