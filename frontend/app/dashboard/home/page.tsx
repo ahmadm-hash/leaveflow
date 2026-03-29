@@ -157,6 +157,45 @@ export default function DashboardHome() {
       .sort((a, b) => a.siteName.localeCompare(b.siteName));
   }, [canViewPresence, managedEmployees, managedLeaves]);
 
+  const todayPresenceRows = useMemo(() => {
+    if (!actsAsDepartmentHead && user?.role !== "ADMIN") return [];
+    if (managedEmployees.length === 0) return [];
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const approvedStatuses = new Set(["APPROVED_BY_SUPERVISOR", "APPROVED_BY_DEPARTMENT_HEAD"]);
+
+    // Build set of employeeId who are on approved leave today
+    const onLeaveToday = new Set<string>();
+    for (const leave of managedLeaves) {
+      if (!approvedStatuses.has(leave.status) || !leave.employee?.id) continue;
+      const leaveStart = leave.startDate.slice(0, 10);
+      const leaveEnd = leave.endDate.slice(0, 10);
+      if (leaveStart <= todayStr && leaveEnd >= todayStr) {
+        onLeaveToday.add(leave.employee.id);
+      }
+    }
+
+    // Group employees by site
+    const siteMap = new Map<string, { siteName: string; present: ManagedUser[]; absent: ManagedUser[] }>();
+    for (const employee of managedEmployees) {
+      if (!employee.site?.id) continue;
+      const siteId = employee.site.id;
+      if (!siteMap.has(siteId)) {
+        siteMap.set(siteId, { siteName: employee.site.name, present: [], absent: [] });
+      }
+      const bucket = siteMap.get(siteId)!;
+      if (onLeaveToday.has(employee.id)) {
+        bucket.absent.push(employee);
+      } else {
+        bucket.present.push(employee);
+      }
+    }
+
+    return Array.from(siteMap.entries())
+      .map(([siteId, data]) => ({ siteId, ...data }))
+      .sort((a, b) => a.siteName.localeCompare(b.siteName));
+  }, [actsAsDepartmentHead, user?.role, managedEmployees, managedLeaves]);
+
   const reportSites = useMemo(() => {
     const siteMap = new Map<string, string>();
     for (const employee of managedEmployees) {
@@ -378,6 +417,91 @@ export default function DashboardHome() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {(actsAsDepartmentHead || user?.role === "ADMIN") && todayPresenceRows.length > 0 && (
+        <div
+          style={{
+            backgroundColor: "white",
+            borderRadius: "10px",
+            border: "1px solid #e0e0e0",
+            padding: "20px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+            marginBottom: "24px",
+          }}
+        >
+          <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#333", fontWeight: "600" }}>
+            Today&apos;s Attendance By Site
+          </h2>
+          <p style={{ margin: "0 0 14px 0", fontSize: "12px", color: "#888" }}>
+            {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {todayPresenceRows.map((row) => (
+              <div key={row.siteId}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#333" }}>🏗️ {row.siteName}</span>
+                  <span style={{
+                    backgroundColor: "#d4edda",
+                    color: "#155724",
+                    borderRadius: "12px",
+                    padding: "2px 10px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                  }}>
+                    ✅ {row.present.length} Present
+                  </span>
+                  {row.absent.length > 0 && (
+                    <span style={{
+                      backgroundColor: "#f8d7da",
+                      color: "#721c24",
+                      borderRadius: "12px",
+                      padding: "2px 10px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                    }}>
+                      🏖️ {row.absent.length} On Leave
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {row.present.map((emp) => (
+                    <div key={emp.id} style={{
+                      backgroundColor: "#f0fff4",
+                      border: "1px solid #b7ebc8",
+                      borderRadius: "8px",
+                      padding: "6px 12px",
+                      fontSize: "13px",
+                      color: "#1a6334",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}>
+                      <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#28a745", display: "inline-block" }} />
+                      {emp.fullName}
+                    </div>
+                  ))}
+                  {row.absent.map((emp) => (
+                    <div key={emp.id} style={{
+                      backgroundColor: "#fff5f5",
+                      border: "1px solid #f5c2c7",
+                      borderRadius: "8px",
+                      padding: "6px 12px",
+                      fontSize: "13px",
+                      color: "#842029",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}>
+                      <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#dc3545", display: "inline-block" }} />
+                      {emp.fullName}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
