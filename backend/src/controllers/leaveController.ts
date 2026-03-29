@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Prisma, PrismaClient } from "@prisma/client";
 import PDFDocument from "pdfkit";
+import QRCode from "qrcode";
 
 const prisma = new PrismaClient();
 
@@ -699,6 +700,22 @@ export const leaveController = {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename=\"${fileName}\"`);
 
+      const qrPayload = JSON.stringify({
+        type: "LEAVE_APPROVAL_REFERENCE",
+        referenceId: leaveRequest.id,
+        employee: leaveRequest.employee.username,
+        signedAt: signedAt.toISOString(),
+      });
+      const qrCodeBuffer = await QRCode.toBuffer(qrPayload, {
+        errorCorrectionLevel: "M",
+        margin: 1,
+        width: 160,
+        color: {
+          dark: "#0f172a",
+          light: "#ffffff",
+        },
+      });
+
       const doc = new PDFDocument({ size: "A4", margin: 48 });
       doc.pipe(res);
 
@@ -756,14 +773,19 @@ export const leaveController = {
       doc
         .roundedRect(190, stampCenterY - 36, 330, 108, 10)
         .fillAndStroke("#fbfcff", "#d5ddee");
+      doc.image(qrCodeBuffer, 430, stampCenterY - 24, { width: 72, height: 72 });
       doc
         .moveTo(208, stampCenterY + 18)
-        .lineTo(492, stampCenterY + 18)
+        .lineTo(410, stampCenterY + 18)
         .lineWidth(1)
         .stroke("#9aa4b2");
       doc.fontSize(10).fillColor("#6b7280").text("Department Head Signature", 208, stampCenterY - 20);
       doc.fontSize(16).fillColor("#111827").text(signedBy, 208, stampCenterY - 2);
       doc.fontSize(10).fillColor("#6b7280").text(`Signed on ${formatDate(signedAt)}`, 208, stampCenterY + 28);
+      doc.fontSize(8).fillColor("#6b7280").text("Scan to verify reference", 420, stampCenterY + 52, {
+        width: 92,
+        align: "center",
+      });
 
       doc.moveDown(2);
       doc
