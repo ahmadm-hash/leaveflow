@@ -198,10 +198,11 @@ export default function NewLeavePage() {
           )}
 
           <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-            <button type="submit" disabled={submitting} style={primaryBtnStyle}>
+            <button className="brand-btn brand-btn-primary hover-lift" type="submit" disabled={submitting} style={primaryBtnStyle}>
               {submitting ? "Submitting..." : "Submit Request"}
             </button>
             <button
+              className="brand-btn brand-btn-soft"
               type="button"
               onClick={() => router.push("/dashboard/leaves")}
               style={secondaryBtnStyle}

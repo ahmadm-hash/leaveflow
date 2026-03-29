@@ -8,6 +8,7 @@ import { authService, ManagedUser } from "../../lib/authService";
 import { StatusBadge } from "../../components/StatusBadge";
 import { LeaveCalendar } from "../../components/LeaveCalendar";
 import { Toaster, toast } from "sonner";
+import { ROLE_COLORS, theme } from "../../lib/theme";
 
 export default function DashboardHome() {
   const user = useAuthStore((state) => state.user);
@@ -243,13 +244,7 @@ export default function DashboardHome() {
 
   const dashboardLeaves = canSubmitLeave ? leaves : managedLeaves;
 
-  const roleColors: Record<string, string> = {
-    EMPLOYEE: "#20cc76",
-    SUPERVISOR: "#2633ff",
-    DEPARTMENT_HEAD: "#052976",
-    ADMIN: "#8142ff",
-  };
-  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#052976";
+  const roleColor = ROLE_COLORS[user?.role ?? "EMPLOYEE"] ?? theme.colors.navy900;
 
   const stats = {
     total: dashboardLeaves.length,
@@ -410,7 +405,7 @@ export default function DashboardHome() {
             Presence By Site
           </h2>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+            <table className="brand-table">
               <thead>
                 <tr style={{ backgroundColor: "#fff8f0" }}>
                   {[
@@ -657,6 +652,7 @@ export default function DashboardHome() {
             {canSubmitLeave ? (
               <Link
                 href="/dashboard/leaves/new"
+                className="brand-btn brand-btn-primary hover-lift"
                 style={{
                   backgroundColor: "#052976",
                   color: "white",
@@ -671,6 +667,7 @@ export default function DashboardHome() {
             ) : (
               <Link
                 href="/dashboard/manage"
+                className="brand-btn brand-btn-primary hover-lift"
                 style={{
                   backgroundColor: "#052976",
                   color: "white",
@@ -685,7 +682,7 @@ export default function DashboardHome() {
             )}
           </div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+          <table className="brand-table">
             <thead>
               <tr>
                 {["Employee", "Site", "Type", "Start", "End", "Status"].map((header) => (
@@ -731,6 +728,7 @@ function QuickAction({ href, label, color }: { href: string; label: string; colo
   return (
     <Link
       href={href}
+      className="brand-btn hover-lift"
       style={{
         backgroundColor: color,
         color: "white",

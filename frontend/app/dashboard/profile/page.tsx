@@ -6,6 +6,7 @@ import { authService } from "../../lib/authService";
 import { Card } from "../../components/Card";
 import { Alert } from "../../components/Alert";
 import { toast, Toaster } from "sonner";
+import { ROLE_COLORS, theme } from "../../lib/theme";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuthStore();
@@ -79,13 +80,6 @@ export default function ProfilePage() {
     }
   };
 
-  const roleColors: Record<string, string> = {
-    EMPLOYEE: "#20cc76",
-    SUPERVISOR: "#2633ff",
-    DEPARTMENT_HEAD: "#052976",
-    ADMIN: "#8142ff",
-  };
-
   return (
     <div>
       <Toaster position="top-right" />
@@ -102,7 +96,7 @@ export default function ProfilePage() {
                 width: "80px",
                 height: "80px",
                 borderRadius: "50%",
-                backgroundColor: roleColors[user?.role ?? "EMPLOYEE"] ?? "#052976",
+                backgroundColor: ROLE_COLORS[user?.role ?? "EMPLOYEE"] ?? theme.colors.navy900,
                 color: "white",
                 fontSize: "32px",
                 fontWeight: "700",
@@ -122,8 +116,8 @@ export default function ProfilePage() {
                 marginTop: "10px",
                 padding: "4px 12px",
                 borderRadius: "12px",
-                backgroundColor: roleColors[user?.role ?? "EMPLOYEE"] + "22",
-                color: roleColors[user?.role ?? "EMPLOYEE"],
+                backgroundColor: (ROLE_COLORS[user?.role ?? "EMPLOYEE"] ?? theme.colors.navy900) + "22",
+                color: ROLE_COLORS[user?.role ?? "EMPLOYEE"],
                 fontSize: "12px",
                 fontWeight: "600",
               }}
@@ -153,6 +147,7 @@ export default function ProfilePage() {
                   <InfoRow label="Annual Leave Balance" value={`${user.annualLeaveBalance} days`} />
                 )}
                 <button
+                  className="brand-btn brand-btn-primary hover-lift"
                   onClick={() => setEditing(true)}
                   style={primaryBtnStyle}
                 >
@@ -177,10 +172,11 @@ export default function ProfilePage() {
                   style={inputStyle}
                 />
                 <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
-                  <button type="submit" disabled={loading} style={primaryBtnStyle}>
+                  <button className="brand-btn brand-btn-primary hover-lift" type="submit" disabled={loading} style={primaryBtnStyle}>
                     {loading ? "Saving..." : "Save Changes"}
                   </button>
                   <button
+                    className="brand-btn brand-btn-soft"
                     type="button"
                     onClick={() => {
                       setEditing(false);
@@ -219,7 +215,7 @@ export default function ProfilePage() {
                 style={inputStyle}
               />
 
-              <button type="submit" disabled={passwordLoading} style={primaryBtnStyle}>
+              <button className="brand-btn brand-btn-primary hover-lift" type="submit" disabled={passwordLoading} style={primaryBtnStyle}>
                 {passwordLoading ? "Updating..." : "Change Password"}
               </button>
             </form>

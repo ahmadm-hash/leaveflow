@@ -78,6 +78,7 @@ export default function LeavesPage() {
         <h1 style={{ color: "#052976", fontSize: "26px", margin: 0, fontWeight: 700 }}>My Leave Requests</h1>
         <Link
           href="/dashboard/leaves/new"
+          className="brand-btn brand-btn-primary hover-lift"
           style={{
             backgroundColor: "#052976",
             color: "white",
@@ -118,7 +119,7 @@ export default function LeavesPage() {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+            <table className="brand-table">
               <thead>
                 <tr style={{ backgroundColor: "#fff8f0" }}>
                   {["Type", "Start", "End", "Days", "Department", "Status", "Actions"].map((h) => (
@@ -164,6 +165,7 @@ export default function LeavesPage() {
                           <button
                             onClick={() => handleCancel(leave.id)}
                             disabled={cancelling === leave.id}
+                            className="brand-btn brand-btn-outline"
                             style={{
                               backgroundColor: "#fff",
                               color: "#9f2f2f",

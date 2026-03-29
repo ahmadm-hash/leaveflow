@@ -1,0 +1,90 @@
+.surface-card {
+  border: 1px solid var(--rc-sand-300);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(5, 41, 118, 0.06);
+}
+
+.brand-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.brand-table thead tr {
+  background: #fff8f0;
+}
+
+.brand-table th {
+  padding: 11px 12px;
+  text-align: left;
+  color: #6f6a63;
+  font-weight: 600;
+  border-bottom: 2px solid var(--rc-sand-300);
+  white-space: nowrap;
+}
+
+.brand-table td {
+  padding: 12px;
+  color: #1d2751;
+  border-bottom: 1px solid #ebe1d2;
+  vertical-align: top;
+}
+
+.brand-table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.brand-table tbody tr:hover {
+  background: #fffdf9;
+}
+
+.brand-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.brand-btn-primary {
+  background: #052976;
+  color: #fff;
+}
+
+.brand-btn-primary:hover {
+  background: #103576;
+  transform: translateY(-1px);
+}
+
+.brand-btn-soft {
+  background: #fff8f0;
+  color: #1d2751;
+  border: 1px solid var(--rc-sand-300);
+}
+
+.brand-btn-soft:hover {
+  background: #fdf1e1;
+}
+
+.brand-btn-outline {
+  background: #fff;
+  border: 1px solid currentColor;
+}
+
+.brand-btn-outline:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(5, 41, 118, 0.12);
+}
+
+.hover-lift {
+  transition: all 0.18s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(5, 41, 118, 0.1);
+}

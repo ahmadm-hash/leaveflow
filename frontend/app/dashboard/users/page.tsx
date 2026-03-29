@@ -7,14 +7,13 @@ import { useAuthStore } from "../../store/authStore";
 import { Card } from "../../components/Card";
 import { Alert } from "../../components/Alert";
 import { toast, Toaster } from "sonner";
+import { ROLE_COLORS, theme } from "../../lib/theme";
 
 type Tab = "list" | "create";
 
 const roleColors: Record<string, string> = {
-  EMPLOYEE: "#20cc76",
-  SUPERVISOR: "#2633ff",
-  DEPARTMENT_HEAD: "#052976",
-  ADMIN: "#dc3545",
+  ...ROLE_COLORS,
+  ADMIN: theme.colors.danger600,
 };
 
 export default function UsersPage() {
@@ -173,7 +172,7 @@ export default function UsersPage() {
         <h1 style={{ color: "#052976", fontSize: "26px", margin: 0, fontWeight: 700 }}>User Management</h1>
         <div style={{ display: "flex", gap: "10px" }}>
           {(canCreateEmployee || canCreateSupervisor) && (
-            <button onClick={() => setTab(tab === "create" ? "list" : "create")} style={tabButtonStyle(tab === "create", "#052976")}>
+            <button className="brand-btn hover-lift" onClick={() => setTab(tab === "create" ? "list" : "create")} style={tabButtonStyle(tab === "create", "#052976")}>
               {tab === "create" ? "← Back to List" : `+ Add ${canCreateEmployee ? "Employee" : "User"}`}
             </button>
           )}
@@ -218,10 +217,10 @@ export default function UsersPage() {
             </select>
 
             <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-              <button type="submit" disabled={submitting} style={primaryBtnStyle}>
+              <button className="brand-btn brand-btn-primary hover-lift" type="submit" disabled={submitting} style={primaryBtnStyle}>
                 {submitting ? "Creating..." : "Create Account"}
               </button>
-              <button type="button" onClick={() => { setForm(defaultForm); setTab("list"); }} style={secondaryBtnStyle}>
+              <button className="brand-btn brand-btn-soft" type="button" onClick={() => { setForm(defaultForm); setTab("list"); }} style={secondaryBtnStyle}>
                 Cancel
               </button>
             </div>
@@ -237,7 +236,7 @@ export default function UsersPage() {
             <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>No users found.</div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+              <table className="brand-table">
                 <thead>
                   <tr style={{ backgroundColor: "#fff8f0" }}>
                     {["Name", "Role", "Primary Site", "Status", "Actions"].map((header) => (
@@ -272,25 +271,25 @@ export default function UsersPage() {
                           <td style={tdStyle}>
                             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                               {canManageSupervisors && managedUser.id !== user?.id && (managedUser.role === "EMPLOYEE" || managedUser.role === "SUPERVISOR") && (
-                                <button onClick={() => toggleSupervisor(managedUser)} style={outlineButtonStyle("#2633ff")}>
+                                <button className="brand-btn brand-btn-outline" onClick={() => toggleSupervisor(managedUser)} style={outlineButtonStyle("#2633ff")}>
                                   {managedUser.role === "SUPERVISOR" ? "Remove Supervisor" : "Make Supervisor"}
                                 </button>
                               )}
 
                               {canManageSupervisors && managedUser.role === "SUPERVISOR" && managedUser.id !== user?.id && (
-                                <button onClick={() => toggleDelegation(managedUser)} style={outlineButtonStyle("#bc9470")}>
+                                <button className="brand-btn brand-btn-outline" onClick={() => toggleDelegation(managedUser)} style={outlineButtonStyle("#bc9470")}>
                                   {managedUser.delegatedDepartmentHead ? "Remove Delegation" : "Delegate Powers"}
                                 </button>
                               )}
 
                               {canResetEmployeePasswords && managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && (
-                                <button onClick={() => handleResetPassword(managedUser)} style={outlineButtonStyle("#198754")}>
+                                <button className="brand-btn brand-btn-outline" onClick={() => handleResetPassword(managedUser)} style={outlineButtonStyle("#198754")}>
                                   Reset Password
                                 </button>
                               )}
 
                               {managedUser.isActive !== false && managedUser.id !== user?.id && canManageSupervisors && (
-                                <button onClick={() => handleDeactivate(managedUser.id)} disabled={deactivating === managedUser.id} style={outlineButtonStyle("#dc3545")}>
+                                <button className="brand-btn brand-btn-outline" onClick={() => handleDeactivate(managedUser.id)} disabled={deactivating === managedUser.id} style={outlineButtonStyle("#dc3545")}>
                                   {deactivating === managedUser.id ? "..." : "Deactivate"}
                                 </button>
                               )}

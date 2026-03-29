@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "../store/authStore";
 import { useRouter } from "next/navigation";
 import { authService } from "../lib/authService";
+import { ROLE_COLORS } from "../lib/theme";
 
 function NavItem({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
@@ -91,13 +92,7 @@ export default function DashboardLayout({
   const canUseUsersPage = user?.role === "SUPERVISOR" || canUseDepartmentHeadTools;
   const canUseSitesPage = canUseDepartmentHeadTools;
 
-  const roleColors: Record<string, string> = {
-    EMPLOYEE: "#20cc76",
-    SUPERVISOR: "#2633ff",
-    DEPARTMENT_HEAD: "#052976",
-    ADMIN: "#8142ff",
-  };
-  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#052976";
+  const roleColor = ROLE_COLORS[user?.role ?? "EMPLOYEE"] ?? "#052976";
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f4eee9" }}>

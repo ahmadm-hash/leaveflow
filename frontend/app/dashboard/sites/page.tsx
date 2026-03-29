@@ -154,7 +154,7 @@ export default function SitesPage() {
             />
 
             <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-              <button type="submit" disabled={submitting} style={primaryBtnStyle}>
+              <button className="brand-btn brand-btn-primary hover-lift" type="submit" disabled={submitting} style={primaryBtnStyle}>
                 {submitting ? "Creating..." : "Create Site"}
               </button>
             </div>
@@ -169,7 +169,7 @@ export default function SitesPage() {
           <div style={{ textAlign: "center", padding: "32px", color: "#666" }}>No sites found.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+            <table className="brand-table">
               <thead>
                 <tr style={{ backgroundColor: "#fff8f0" }}>
                   {["Site", "Location", "Assigned Supervisor"].map((header) => (
@@ -214,7 +214,7 @@ export default function SitesPage() {
                           {siteNames.length > 0 ? siteNames.join(", ") : "No supervised sites yet"}
                         </div>
                       </div>
-                      <button onClick={() => openSiteManager(managedUser)} style={outlineButtonStyle("#052976")}>
+                      <button className="brand-btn brand-btn-outline" onClick={() => openSiteManager(managedUser)} style={outlineButtonStyle("#052976")}>
                         {isManagingSites ? "Editing" : "Manage Sites"}
                       </button>
                     </div>
@@ -254,10 +254,10 @@ export default function SitesPage() {
                           })}
                         </div>
                         <div style={{ display: "flex", gap: "10px" }}>
-                          <button onClick={() => saveSupervisorSites(managedUser.id)} style={primaryBtnStyle}>
+                          <button className="brand-btn brand-btn-primary hover-lift" onClick={() => saveSupervisorSites(managedUser.id)} style={primaryBtnStyle}>
                             Save Sites
                           </button>
-                          <button onClick={() => setManagingSitesFor(null)} style={secondaryBtnStyle}>
+                          <button className="brand-btn brand-btn-soft" onClick={() => setManagingSitesFor(null)} style={secondaryBtnStyle}>
                             Close
                           </button>
                         </div>

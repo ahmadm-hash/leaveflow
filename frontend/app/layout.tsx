@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { initializeApiClient } from "./lib/apiClient";
 import "./globals.css";
+import "./theme.css";
 
 export default function RootLayout({
   children,

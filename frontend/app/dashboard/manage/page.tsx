@@ -123,6 +123,7 @@ export default function ManageLeavesPage() {
       <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
         {(["all", "PENDING", "APPROVED_BY_SUPERVISOR", "CANCELLATION_REQUESTED"] as FilterStatus[]).map((f) => (
           <button
+            className="brand-btn"
             key={f}
             onClick={() => setFilter(f)}
             style={{
@@ -157,7 +158,7 @@ export default function ManageLeavesPage() {
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+            <table className="brand-table">
               <thead>
                 <tr style={{ backgroundColor: "#fff8f0" }}>
                   {["Employee", "Type", "Start", "End", "Days", "Department", "Status", "Actions"].map((h) => (
@@ -203,6 +204,7 @@ export default function ManageLeavesPage() {
                         <td style={tdStyle}>
                           {canReview(leave) && !isReviewing && (
                             <button
+                              className="brand-btn brand-btn-primary hover-lift"
                               onClick={() => setReviewingId(leave.id)}
                               style={{
                                 backgroundColor: "#052976",
@@ -219,6 +221,7 @@ export default function ManageLeavesPage() {
                           )}
                           {isReviewing && (
                             <button
+                              className="brand-btn brand-btn-soft"
                               onClick={() => { setReviewingId(null); setComment(""); }}
                               style={{
                                 backgroundColor: "#fff8f0",
@@ -266,6 +269,7 @@ export default function ManageLeavesPage() {
                               />
                               <div style={{ display: "flex", gap: "8px" }}>
                                 <button
+                                  className="brand-btn brand-btn-primary hover-lift"
                                   onClick={() => handleReview(leave.id, "approve")}
                                   disabled={submitting}
                                   style={{
@@ -286,6 +290,7 @@ export default function ManageLeavesPage() {
                                       : "✓ Approve"}
                                 </button>
                                 <button
+                                  className="brand-btn hover-lift"
                                   onClick={() => handleReview(leave.id, "reject")}
                                   disabled={submitting}
                                   style={{
