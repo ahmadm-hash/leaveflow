@@ -11,9 +11,9 @@ import { toast, Toaster } from "sonner";
 type Tab = "list" | "create";
 
 const roleColors: Record<string, string> = {
-  EMPLOYEE: "#007bff",
-  SUPERVISOR: "#6f42c1",
-  DEPARTMENT_HEAD: "#fd7e14",
+  EMPLOYEE: "#20cc76",
+  SUPERVISOR: "#2633ff",
+  DEPARTMENT_HEAD: "#052976",
   ADMIN: "#dc3545",
 };
 
@@ -170,10 +170,10 @@ export default function UsersPage() {
     <div>
       <Toaster position="top-right" />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1 style={{ color: "#333", fontSize: "24px", margin: 0 }}>User Management</h1>
+        <h1 style={{ color: "#052976", fontSize: "26px", margin: 0, fontWeight: 700 }}>User Management</h1>
         <div style={{ display: "flex", gap: "10px" }}>
           {(canCreateEmployee || canCreateSupervisor) && (
-            <button onClick={() => setTab(tab === "create" ? "list" : "create")} style={tabButtonStyle(tab === "create", "#007bff")}>
+            <button onClick={() => setTab(tab === "create" ? "list" : "create")} style={tabButtonStyle(tab === "create", "#052976")}>
               {tab === "create" ? "← Back to List" : `+ Add ${canCreateEmployee ? "Employee" : "User"}`}
             </button>
           )}
@@ -239,7 +239,7 @@ export default function UsersPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
                 <thead>
-                  <tr style={{ backgroundColor: "#f8f9fa" }}>
+                  <tr style={{ backgroundColor: "#fff8f0" }}>
                     {["Name", "Role", "Primary Site", "Status", "Actions"].map((header) => (
                       <th key={header} style={thStyle}>{header}</th>
                     ))}
@@ -259,7 +259,7 @@ export default function UsersPage() {
                             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                               <span style={roleBadgeStyle(managedUser.role)}>{managedUser.role}</span>
                               {managedUser.delegatedDepartmentHead && (
-                                <span style={miniBadgeStyle("#fd7e14")}>Delegated Head</span>
+                                <span style={miniBadgeStyle("#bc9470")}>Delegated Head</span>
                               )}
                             </div>
                           </td>
@@ -272,13 +272,13 @@ export default function UsersPage() {
                           <td style={tdStyle}>
                             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                               {canManageSupervisors && managedUser.id !== user?.id && (managedUser.role === "EMPLOYEE" || managedUser.role === "SUPERVISOR") && (
-                                <button onClick={() => toggleSupervisor(managedUser)} style={outlineButtonStyle("#6f42c1")}>
+                                <button onClick={() => toggleSupervisor(managedUser)} style={outlineButtonStyle("#2633ff")}>
                                   {managedUser.role === "SUPERVISOR" ? "Remove Supervisor" : "Make Supervisor"}
                                 </button>
                               )}
 
                               {canManageSupervisors && managedUser.role === "SUPERVISOR" && managedUser.id !== user?.id && (
-                                <button onClick={() => toggleDelegation(managedUser)} style={outlineButtonStyle("#fd7e14")}>
+                                <button onClick={() => toggleDelegation(managedUser)} style={outlineButtonStyle("#bc9470")}>
                                   {managedUser.delegatedDepartmentHead ? "Remove Delegation" : "Delegate Powers"}
                                 </button>
                               )}
@@ -311,17 +311,17 @@ export default function UsersPage() {
 
 const labelStyle: React.CSSProperties = {
   display: "block",
-  marginBottom: "4px",
-  color: "#555",
+  marginBottom: "6px",
+  color: "#6f6a63",
   fontSize: "13px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "9px 12px",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
+  padding: "11px 13px",
+  border: "1px solid #dcc8b6",
+  borderRadius: "10px",
   fontSize: "14px",
   boxSizing: "border-box",
   marginBottom: "14px",
@@ -329,22 +329,22 @@ const inputStyle: React.CSSProperties = {
 };
 
 const primaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#007bff",
+  backgroundColor: "#052976",
   color: "white",
   border: "none",
-  padding: "9px 20px",
-  borderRadius: "6px",
+  padding: "10px 20px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const secondaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#f8f9fa",
-  color: "#333",
-  border: "1px solid #ddd",
-  padding: "9px 20px",
-  borderRadius: "6px",
+  backgroundColor: "#fff8f0",
+  color: "#1d2751",
+  border: "1px solid #dcc8b6",
+  padding: "10px 20px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
 };
@@ -352,13 +352,13 @@ const secondaryBtnStyle: React.CSSProperties = {
 const thStyle: React.CSSProperties = {
   padding: "10px 12px",
   textAlign: "left",
-  color: "#555",
+  color: "#6f6a63",
   fontWeight: "600",
-  borderBottom: "2px solid #e0e0e0",
+  borderBottom: "2px solid #dcc8b6",
   whiteSpace: "nowrap",
 };
 
-const tdStyle: React.CSSProperties = { padding: "12px", color: "#333", verticalAlign: "top" };
+const tdStyle: React.CSSProperties = { padding: "12px", color: "#1d2751", verticalAlign: "top" };
 
 const roleBadgeStyle = (role: string): React.CSSProperties => ({
   padding: "3px 10px",
@@ -381,8 +381,8 @@ const miniBadgeStyle = (color: string): React.CSSProperties => ({
 const statusPillStyle = (active: boolean): React.CSSProperties => ({
   fontSize: "12px",
   fontWeight: "600",
-  color: active ? "#155724" : "#721c24",
-  backgroundColor: active ? "#d4edda" : "#f8d7da",
+  color: active ? "#0a9d76" : "#721c24",
+  backgroundColor: active ? "#daf7ea" : "#f8d7da",
   padding: "3px 8px",
   borderRadius: "10px",
 });
@@ -401,9 +401,9 @@ const tabButtonStyle = (active: boolean, color: string): React.CSSProperties => 
   backgroundColor: active ? "#6c757d" : color,
   color: "white",
   border: "none",
-  padding: "9px 20px",
-  borderRadius: "6px",
+  padding: "10px 20px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
-  fontWeight: "500",
+  fontWeight: "600",
 });

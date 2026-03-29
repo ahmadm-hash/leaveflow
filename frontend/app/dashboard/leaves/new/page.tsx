@@ -85,23 +85,23 @@ export default function NewLeavePage() {
       <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
         <button
           onClick={() => router.back()}
-          style={{ background: "none", border: "none", color: "#007bff", cursor: "pointer", fontSize: "14px" }}
+          style={{ background: "none", border: "none", color: "#052976", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}
         >
           ← Back
         </button>
-        <h1 style={{ color: "#333", fontSize: "24px", margin: 0 }}>New Leave Request</h1>
+        <h1 style={{ color: "#052976", fontSize: "26px", margin: 0, fontWeight: 700 }}>New Leave Request</h1>
       </div>
 
       {user?.annualLeaveBalance !== undefined && (
         <div
           style={{
-            backgroundColor: "#e8f0fe",
-            border: "1px solid #c2d0f8",
-            borderRadius: "8px",
-            padding: "12px 16px",
+            backgroundColor: "#eef4ff",
+            border: "1px solid #bfd0ff",
+            borderRadius: "12px",
+            padding: "14px 16px",
             marginBottom: "20px",
             fontSize: "14px",
-            color: "#1a3a8f",
+            color: "#103576",
           }}
         >
           Annual leave balance: <strong>{user.annualLeaveBalance} days</strong>
@@ -143,12 +143,12 @@ export default function NewLeavePage() {
           {days > 0 && (
             <div
               style={{
-                backgroundColor: "#f0f8f0",
-                borderRadius: "6px",
-                padding: "8px 12px",
+                backgroundColor: "#edf9f2",
+                borderRadius: "10px",
+                padding: "10px 12px",
                 marginBottom: "16px",
                 fontSize: "13px",
-                color: "#2d6a4f",
+                color: "#0a9d76",
                 fontWeight: "500",
               }}
             >
@@ -217,40 +217,40 @@ export default function NewLeavePage() {
 
 const labelStyle: React.CSSProperties = {
   display: "block",
-  marginBottom: "5px",
-  color: "#555",
+  marginBottom: "6px",
+  color: "#6f6a63",
   fontSize: "13px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "9px 12px",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
+  padding: "11px 13px",
+  border: "1px solid #dcc8b6",
+  borderRadius: "10px",
   fontSize: "14px",
   boxSizing: "border-box",
-  marginBottom: "16px",
+  marginBottom: "18px",
   backgroundColor: "white",
 };
 
 const primaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#007bff",
+  backgroundColor: "#052976",
   color: "white",
   border: "none",
-  padding: "10px 24px",
-  borderRadius: "6px",
+  padding: "11px 24px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const secondaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#f8f9fa",
-  color: "#333",
-  border: "1px solid #ddd",
-  padding: "10px 24px",
-  borderRadius: "6px",
+  backgroundColor: "#fff8f0",
+  color: "#1d2751",
+  border: "1px solid #dcc8b6",
+  padding: "11px 24px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
 };

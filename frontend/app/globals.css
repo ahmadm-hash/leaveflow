@@ -32,6 +32,9 @@ body {
     radial-gradient(circle at 84% 12%, rgba(129, 66, 255, 0.14), transparent 32%),
     radial-gradient(circle at 50% 100%, rgba(32, 204, 118, 0.12), transparent 34%),
     linear-gradient(180deg, #fffdf9 0%, var(--rc-paper-100) 100%);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a {

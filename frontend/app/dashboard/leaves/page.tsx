@@ -57,17 +57,17 @@ export default function LeavesPage() {
     <div>
       <Toaster position="top-right" />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1 style={{ color: "#333", fontSize: "24px", margin: 0 }}>My Leave Requests</h1>
+        <h1 style={{ color: "#052976", fontSize: "26px", margin: 0, fontWeight: 700 }}>My Leave Requests</h1>
         <Link
           href="/dashboard/leaves/new"
           style={{
-            backgroundColor: "#007bff",
+            backgroundColor: "#052976",
             color: "white",
-            padding: "9px 20px",
-            borderRadius: "6px",
+            padding: "10px 22px",
+            borderRadius: "10px",
             textDecoration: "none",
             fontSize: "14px",
-            fontWeight: "500",
+            fontWeight: "600",
           }}
         >
           + New Request
@@ -76,9 +76,9 @@ export default function LeavesPage() {
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
-        <StatBox label="Total" value={stats.total} color="#6c757d" />
-        <StatBox label="Pending" value={stats.pending} color="#ffc107" />
-        <StatBox label="Approved" value={stats.approved} color="#28a745" />
+        <StatBox label="Total" value={stats.total} color="#103576" />
+        <StatBox label="Pending" value={stats.pending} color="#bc9470" />
+        <StatBox label="Approved" value={stats.approved} color="#20cc76" />
         <StatBox label="Rejected" value={stats.rejected} color="#dc3545" />
       </div>
 
@@ -90,10 +90,10 @@ export default function LeavesPage() {
         ) : leaves.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px" }}>
             <div style={{ fontSize: "40px", marginBottom: "12px" }}>📋</div>
-            <div style={{ color: "#666", fontSize: "15px" }}>No leave requests yet.</div>
+            <div style={{ color: "#6f6a63", fontSize: "15px" }}>No leave requests yet.</div>
             <Link
               href="/dashboard/leaves/new"
-              style={{ color: "#007bff", fontSize: "14px", textDecoration: "none" }}
+              style={{ color: "#052976", fontSize: "14px", textDecoration: "none", fontWeight: 600 }}
             >
               Submit your first request →
             </Link>
@@ -102,16 +102,16 @@ export default function LeavesPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
-                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <tr style={{ backgroundColor: "#fff8f0" }}>
                   {["Type", "Start", "End", "Days", "Department", "Status", "Actions"].map((h) => (
                     <th
                       key={h}
                       style={{
                         padding: "10px 12px",
                         textAlign: "left",
-                        color: "#555",
+                        color: "#6f6a63",
                         fontWeight: "600",
-                        borderBottom: "2px solid #e0e0e0",
+                        borderBottom: "2px solid #dcc8b6",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -148,10 +148,10 @@ export default function LeavesPage() {
                             disabled={cancelling === leave.id}
                             style={{
                               backgroundColor: "#fff",
-                              color: "#dc3545",
+                              color: "#9f2f2f",
                               border: "1px solid #dc3545",
-                              padding: "4px 12px",
-                              borderRadius: "4px",
+                              padding: "5px 12px",
+                              borderRadius: "8px",
                               cursor: "pointer",
                               fontSize: "12px",
                             }}
@@ -181,15 +181,16 @@ function StatBox({ label, value, color }: { label: string; value: number; color:
     <div
       style={{
         backgroundColor: "white",
-        borderRadius: "8px",
-        border: "1px solid #e0e0e0",
-        padding: "16px",
+        borderRadius: "12px",
+        border: "1px solid #dcc8b6",
+        padding: "18px",
         textAlign: "center",
         borderTop: `3px solid ${color}`,
+        boxShadow: "0 8px 22px rgba(5,41,118,0.05)",
       }}
     >
       <div style={{ fontSize: "26px", fontWeight: "700", color }}>{value}</div>
-      <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>{label}</div>
+      <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "2px" }}>{label}</div>
     </div>
   );
 }
@@ -198,4 +199,4 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-const tdStyle: React.CSSProperties = { padding: "10px 12px", color: "#333" };
+const tdStyle: React.CSSProperties = { padding: "12px 12px", color: "#1d2751" };

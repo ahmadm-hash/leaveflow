@@ -123,8 +123,8 @@ export default function SitesPage() {
       <Toaster position="top-right" />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", gap: "16px", flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ color: "#333", fontSize: "24px", margin: 0 }}>Site Management</h1>
-          <p style={{ margin: "6px 0 0 0", color: "#666", fontSize: "14px" }}>
+          <h1 style={{ color: "#052976", fontSize: "26px", margin: 0, fontWeight: 700 }}>Site Management</h1>
+          <p style={{ margin: "8px 0 0 0", color: "#6f6a63", fontSize: "14px" }}>
             Everything related to sites is managed here: creating sites and assigning supervisors.
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function SitesPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
-                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <tr style={{ backgroundColor: "#fff8f0" }}>
                   {["Site", "Location", "Assigned Supervisor"].map((header) => (
                     <th key={header} style={thStyle}>{header}</th>
                   ))}
@@ -206,22 +206,22 @@ export default function SitesPage() {
                   <div key={managedUser.id} style={supervisorCardStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
                       <div>
-                        <div style={{ fontWeight: 600, color: "#333" }}>{managedUser.fullName}</div>
-                        <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+                        <div style={{ fontWeight: 600, color: "#1d2751" }}>{managedUser.fullName}</div>
+                        <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "4px" }}>
                           @{managedUser.username} · {managedUser.email}
                         </div>
-                        <div style={{ fontSize: "13px", color: "#555", marginTop: "8px" }}>
+                        <div style={{ fontSize: "13px", color: "#6f6a63", marginTop: "8px" }}>
                           {siteNames.length > 0 ? siteNames.join(", ") : "No supervised sites yet"}
                         </div>
                       </div>
-                      <button onClick={() => openSiteManager(managedUser)} style={outlineButtonStyle("#0d6efd")}>
+                      <button onClick={() => openSiteManager(managedUser)} style={outlineButtonStyle("#052976")}>
                         {isManagingSites ? "Editing" : "Manage Sites"}
                       </button>
                     </div>
 
                     {isManagingSites && (
-                      <div style={{ marginTop: "14px", borderTop: "1px solid #eef2f7", paddingTop: "14px" }}>
-                        <div style={{ fontWeight: 600, color: "#333", marginBottom: "10px" }}>
+                      <div style={{ marginTop: "14px", borderTop: "1px solid #ebe1d2", paddingTop: "14px" }}>
+                        <div style={{ fontWeight: 600, color: "#1d2751", marginBottom: "10px" }}>
                           Assign supervised sites to {managedUser.fullName}
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px", marginBottom: "14px" }}>
@@ -243,8 +243,8 @@ export default function SitesPage() {
                                   }}
                                 />
                                 <div>
-                                  <div style={{ fontWeight: 600, color: "#333" }}>{site.name}</div>
-                                  <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+                                  <div style={{ fontWeight: 600, color: "#1d2751" }}>{site.name}</div>
+                                  <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "4px" }}>
                                     {site.location}
                                     {occupiedByOther ? " · already assigned" : ""}
                                   </div>
@@ -276,17 +276,17 @@ export default function SitesPage() {
 
 const labelStyle: React.CSSProperties = {
   display: "block",
-  marginBottom: "4px",
-  color: "#555",
+  marginBottom: "6px",
+  color: "#6f6a63",
   fontSize: "13px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "9px 12px",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
+  padding: "11px 13px",
+  border: "1px solid #dcc8b6",
+  borderRadius: "10px",
   fontSize: "14px",
   boxSizing: "border-box",
   marginBottom: "14px",
@@ -294,22 +294,22 @@ const inputStyle: React.CSSProperties = {
 };
 
 const primaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#007bff",
+  backgroundColor: "#052976",
   color: "white",
   border: "none",
-  padding: "9px 20px",
-  borderRadius: "6px",
+  padding: "10px 20px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const secondaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#f8f9fa",
-  color: "#333",
-  border: "1px solid #ddd",
-  padding: "9px 20px",
-  borderRadius: "6px",
+  backgroundColor: "#fff8f0",
+  color: "#1d2751",
+  border: "1px solid #dcc8b6",
+  padding: "10px 20px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
 };
@@ -317,15 +317,15 @@ const secondaryBtnStyle: React.CSSProperties = {
 const thStyle: React.CSSProperties = {
   padding: "10px 12px",
   textAlign: "left",
-  color: "#555",
+  color: "#6f6a63",
   fontWeight: "600",
-  borderBottom: "2px solid #e0e0e0",
+  borderBottom: "2px solid #dcc8b6",
   whiteSpace: "nowrap",
 };
 
 const tdStyle: React.CSSProperties = {
   padding: "12px",
-  color: "#333",
+  color: "#1d2751",
   verticalAlign: "top",
 };
 
@@ -344,15 +344,15 @@ const checkboxCardStyle = (disabled: boolean): React.CSSProperties => ({
   gap: "10px",
   alignItems: "flex-start",
   padding: "12px",
-  border: `1px solid ${disabled ? "#ececec" : "#dbe4ff"}`,
+  border: `1px solid ${disabled ? "#ececec" : "#bfd0ff"}`,
   borderRadius: "10px",
-  backgroundColor: disabled ? "#f8f9fa" : "white",
+  backgroundColor: disabled ? "#f7f3ed" : "white",
   opacity: disabled ? 0.7 : 1,
 });
 
 const supervisorCardStyle: React.CSSProperties = {
-  border: "1px solid #e8edf5",
+  border: "1px solid #dcc8b6",
   borderRadius: "12px",
   padding: "16px",
-  backgroundColor: "#fcfdff",
+  backgroundColor: "#fffdf9",
 };

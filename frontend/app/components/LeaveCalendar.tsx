@@ -14,7 +14,7 @@ export function LeaveCalendar({
   title,
   leaves,
   emptyMessage,
-  accentColor = "#007bff",
+  accentColor = "#052976",
 }: LeaveCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
@@ -73,15 +73,15 @@ export function LeaveCalendar({
       style={{
         backgroundColor: "white",
         borderRadius: "12px",
-        border: "1px solid #e5e7eb",
-        padding: "20px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+        border: "1px solid #dcc8b6",
+        padding: "22px",
+        boxShadow: "0 10px 26px rgba(5,41,118,0.06)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: "18px", color: "#222", fontWeight: 700 }}>{title}</h2>
-          <div style={{ color: "#666", fontSize: "13px", marginTop: "4px" }}>
+          <h2 style={{ margin: 0, fontSize: "18px", color: "#052976", fontWeight: 700 }}>{title}</h2>
+          <div style={{ color: "#6f6a63", fontSize: "13px", marginTop: "4px" }}>
             Click any day to view linked requests
           </div>
         </div>
@@ -89,7 +89,7 @@ export function LeaveCalendar({
           <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))} style={navBtnStyle}>
             ←
           </button>
-          <div style={{ minWidth: "170px", textAlign: "center", fontWeight: 600, color: "#333" }}>
+          <div style={{ minWidth: "170px", textAlign: "center", fontWeight: 600, color: "#1d2751" }}>
             {currentMonth.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
           </div>
           <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))} style={navBtnStyle}>
@@ -100,7 +100,7 @@ export function LeaveCalendar({
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px" }}>
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} style={{ textAlign: "center", fontSize: "12px", color: "#888", fontWeight: 600 }}>
+          <div key={day} style={{ textAlign: "center", fontSize: "12px", color: "#8a6848", fontWeight: 600 }}>
             {day}
           </div>
         ))}
@@ -120,14 +120,14 @@ export function LeaveCalendar({
               style={{
                 minHeight: "90px",
                 borderRadius: "10px",
-                border: `1px solid ${isSelected ? accentColor : "#e5e7eb"}`,
+                border: `1px solid ${isSelected ? accentColor : "#dcc8b6"}`,
                 backgroundColor: isSelected ? `${accentColor}12` : "#fff",
                 padding: "10px",
                 cursor: "pointer",
                 textAlign: "left",
               }}
             >
-              <div style={{ fontWeight: 700, color: "#333", marginBottom: "8px" }}>{day.label}</div>
+              <div style={{ fontWeight: 700, color: "#1d2751", marginBottom: "8px" }}>{day.label}</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                 {events.slice(0, 3).map((event) => (
                   <span
@@ -144,7 +144,7 @@ export function LeaveCalendar({
                   </span>
                 ))}
                 {events.length > 3 && (
-                  <span style={{ fontSize: "10px", color: "#666" }}>+{events.length - 3}</span>
+                  <span style={{ fontSize: "10px", color: "#6f6a63" }}>+{events.length - 3}</span>
                 )}
               </div>
             </button>
@@ -152,29 +152,29 @@ export function LeaveCalendar({
         })}
       </div>
 
-      <div style={{ marginTop: "18px", borderTop: "1px solid #f0f0f0", paddingTop: "14px" }}>
+      <div style={{ marginTop: "18px", borderTop: "1px solid #ebe1d2", paddingTop: "14px" }}>
         {!selectedDate ? (
-          <div style={{ color: "#777", fontSize: "13px" }}>{emptyMessage}</div>
+          <div style={{ color: "#6f6a63", fontSize: "13px" }}>{emptyMessage}</div>
         ) : selectedEvents.length === 0 ? (
-          <div style={{ color: "#777", fontSize: "13px" }}>No requests on {selectedDate}.</div>
+          <div style={{ color: "#6f6a63", fontSize: "13px" }}>No requests on {selectedDate}.</div>
         ) : (
           <div style={{ display: "grid", gap: "10px" }}>
             {selectedEvents.map((event) => (
               <div
                 key={event.id}
                 style={{
-                  border: "1px solid #ececec",
+                  border: "1px solid #ebe1d2",
                   borderRadius: "10px",
                   padding: "12px",
-                  backgroundColor: "#fafafa",
+                  backgroundColor: "#fffaf5",
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                   <div>
-                    <div style={{ fontWeight: 600, color: "#222" }}>
+                    <div style={{ fontWeight: 600, color: "#1d2751" }}>
                       {event.employee?.fullName ?? event.leaveType}
                     </div>
-                    <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                    <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "4px" }}>
                       {event.leaveType} · {formatDate(event.startDate)} - {formatDate(event.endDate)}
                     </div>
                   </div>
@@ -204,18 +204,18 @@ const navBtnStyle: React.CSSProperties = {
   width: "34px",
   height: "34px",
   borderRadius: "8px",
-  border: "1px solid #ddd",
+  border: "1px solid #dcc8b6",
   backgroundColor: "white",
   cursor: "pointer",
 };
 
 const statusColor = (status: string) => {
-  if (status === "APPROVED_BY_DEPARTMENT_HEAD") return { bg: "#d4edda", color: "#155724" };
-  if (status === "APPROVED_BY_SUPERVISOR") return { bg: "#d1ecf1", color: "#0c5460" };
-  if (status === "CANCELLATION_REQUESTED") return { bg: "#fff3cd", color: "#856404" };
+  if (status === "APPROVED_BY_DEPARTMENT_HEAD") return { bg: "#daf7ea", color: "#0a9d76" };
+  if (status === "APPROVED_BY_SUPERVISOR") return { bg: "#e7efff", color: "#103576" };
+  if (status === "CANCELLATION_REQUESTED") return { bg: "#f3e6d8", color: "#8a6848" };
   if (status === "REJECTED") return { bg: "#f8d7da", color: "#721c24" };
-  if (status === "CANCELLED") return { bg: "#e2e3e5", color: "#495057" };
-  return { bg: "#eef2ff", color: "#334155" };
+  if (status === "CANCELLED") return { bg: "#eceff6", color: "#5b6680" };
+  return { bg: "#eef2ff", color: "#103576" };
 };
 
 function formatDate(iso: string) {

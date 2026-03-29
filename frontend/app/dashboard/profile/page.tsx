@@ -80,16 +80,16 @@ export default function ProfilePage() {
   };
 
   const roleColors: Record<string, string> = {
-    EMPLOYEE: "#007bff",
-    SUPERVISOR: "#6f42c1",
-    DEPARTMENT_HEAD: "#fd7e14",
-    ADMIN: "#dc3545",
+    EMPLOYEE: "#20cc76",
+    SUPERVISOR: "#2633ff",
+    DEPARTMENT_HEAD: "#052976",
+    ADMIN: "#8142ff",
   };
 
   return (
     <div>
       <Toaster position="top-right" />
-      <h1 style={{ color: "#333", marginBottom: "24px", fontSize: "24px" }}>My Profile</h1>
+      <h1 style={{ color: "#052976", marginBottom: "24px", fontSize: "26px", fontWeight: 700 }}>My Profile</h1>
 
       {error && <Alert type="error" message={error} />}
 
@@ -102,7 +102,7 @@ export default function ProfilePage() {
                 width: "80px",
                 height: "80px",
                 borderRadius: "50%",
-                backgroundColor: roleColors[user?.role ?? "EMPLOYEE"] ?? "#007bff",
+                backgroundColor: roleColors[user?.role ?? "EMPLOYEE"] ?? "#052976",
                 color: "white",
                 fontSize: "32px",
                 fontWeight: "700",
@@ -114,8 +114,8 @@ export default function ProfilePage() {
             >
               {user?.fullName?.[0]?.toUpperCase() ?? "?"}
             </div>
-            <div style={{ fontWeight: "600", fontSize: "16px", color: "#333" }}>{user?.fullName}</div>
-            <div style={{ fontSize: "13px", color: "#666", marginTop: "4px" }}>@{user?.username}</div>
+            <div style={{ fontWeight: "600", fontSize: "16px", color: "#1d2751" }}>{user?.fullName}</div>
+            <div style={{ fontSize: "13px", color: "#6f6a63", marginTop: "4px" }}>@{user?.username}</div>
             <span
               style={{
                 display: "inline-block",
@@ -131,10 +131,10 @@ export default function ProfilePage() {
               {user?.role}
             </span>
             {user?.site && (
-              <div style={{ marginTop: "12px", fontSize: "13px", color: "#555" }}>
+              <div style={{ marginTop: "12px", fontSize: "13px", color: "#6f6a63" }}>
                 <div style={{ fontWeight: "500" }}>Site</div>
                 <div>{user.site.name}</div>
-                {user.site.location && <div style={{ color: "#888" }}>{user.site.location}</div>}
+                {user.site.location && <div style={{ color: "#8c7a69" }}>{user.site.location}</div>}
               </div>
             )}
           </div>
@@ -232,48 +232,48 @@ export default function ProfilePage() {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}>
-      <span style={{ color: "#666", fontSize: "14px" }}>{label}</span>
-      <span style={{ color: "#333", fontSize: "14px", fontWeight: "500" }}>{value}</span>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #ebe1d2" }}>
+      <span style={{ color: "#6f6a63", fontSize: "14px" }}>{label}</span>
+      <span style={{ color: "#1d2751", fontSize: "14px", fontWeight: "500" }}>{value}</span>
     </div>
   );
 }
 
 const labelStyle: React.CSSProperties = {
   display: "block",
-  marginBottom: "4px",
-  color: "#555",
+  marginBottom: "6px",
+  color: "#6f6a63",
   fontSize: "13px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  padding: "9px 12px",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
+  padding: "11px 13px",
+  border: "1px solid #dcc8b6",
+  borderRadius: "10px",
   fontSize: "14px",
   boxSizing: "border-box",
-  marginBottom: "12px",
+  marginBottom: "14px",
 };
 
 const primaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#007bff",
+  backgroundColor: "#052976",
   color: "white",
   border: "none",
-  padding: "9px 20px",
-  borderRadius: "6px",
+  padding: "10px 20px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
-  fontWeight: "500",
+  fontWeight: "600",
 };
 
 const secondaryBtnStyle: React.CSSProperties = {
-  backgroundColor: "#f8f9fa",
-  color: "#333",
-  border: "1px solid #ddd",
-  padding: "9px 20px",
-  borderRadius: "6px",
+  backgroundColor: "#fff8f0",
+  color: "#1d2751",
+  border: "1px solid #dcc8b6",
+  padding: "10px 20px",
+  borderRadius: "10px",
   cursor: "pointer",
   fontSize: "14px",
 };

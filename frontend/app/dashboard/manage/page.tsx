@@ -106,14 +106,14 @@ export default function ManageLeavesPage() {
   return (
     <div>
       <Toaster position="top-right" />
-      <h1 style={{ color: "#333", fontSize: "24px", marginBottom: "24px" }}>Manage Leave Requests</h1>
+      <h1 style={{ color: "#052976", fontSize: "26px", marginBottom: "24px", fontWeight: 700 }}>Manage Leave Requests</h1>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "16px", marginBottom: "24px" }}>
-        <StatBox label="Pending" value={stats.pending} color="#ffc107" />
-        <StatBox label="Awaiting Dept. Head" value={stats.awaitingDept} color="#17a2b8" />
-        <StatBox label="Cancellation Requests" value={stats.cancellationRequests} color="#fd7e14" />
-        <StatBox label="Fully Approved" value={stats.fullyApproved} color="#28a745" />
+        <StatBox label="Pending" value={stats.pending} color="#bc9470" />
+        <StatBox label="Awaiting Dept. Head" value={stats.awaitingDept} color="#4cc4ff" />
+        <StatBox label="Cancellation Requests" value={stats.cancellationRequests} color="#8142ff" />
+        <StatBox label="Fully Approved" value={stats.fullyApproved} color="#20cc76" />
         <StatBox label="Rejected" value={stats.rejected} color="#dc3545" />
       </div>
 
@@ -129,9 +129,9 @@ export default function ManageLeavesPage() {
               padding: "6px 16px",
               borderRadius: "20px",
               border: "1px solid",
-              borderColor: filter === f ? "#007bff" : "#ddd",
-              backgroundColor: filter === f ? "#007bff" : "white",
-              color: filter === f ? "white" : "#555",
+              borderColor: filter === f ? "#052976" : "#dcc8b6",
+              backgroundColor: filter === f ? "#052976" : "white",
+              color: filter === f ? "white" : "#6f6a63",
               cursor: "pointer",
               fontSize: "13px",
               fontWeight: filter === f ? "600" : "400",
@@ -159,16 +159,16 @@ export default function ManageLeavesPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
-                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <tr style={{ backgroundColor: "#fff8f0" }}>
                   {["Employee", "Type", "Start", "End", "Days", "Department", "Status", "Actions"].map((h) => (
                     <th
                       key={h}
                       style={{
                         padding: "10px 12px",
                         textAlign: "left",
-                        color: "#555",
+                        color: "#6f6a63",
                         fontWeight: "600",
-                        borderBottom: "2px solid #e0e0e0",
+                        borderBottom: "2px solid #dcc8b6",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -205,11 +205,11 @@ export default function ManageLeavesPage() {
                             <button
                               onClick={() => setReviewingId(leave.id)}
                               style={{
-                                backgroundColor: "#007bff",
+                                backgroundColor: "#052976",
                                 color: "white",
                                 border: "none",
-                                padding: "5px 14px",
-                                borderRadius: "4px",
+                                padding: "6px 14px",
+                                borderRadius: "8px",
                                 cursor: "pointer",
                                 fontSize: "12px",
                               }}
@@ -221,11 +221,11 @@ export default function ManageLeavesPage() {
                             <button
                               onClick={() => { setReviewingId(null); setComment(""); }}
                               style={{
-                                backgroundColor: "#f8f9fa",
-                                color: "#555",
-                                border: "1px solid #ddd",
+                                backgroundColor: "#fff8f0",
+                                color: "#6f6a63",
+                                border: "1px solid #dcc8b6",
                                 padding: "5px 10px",
-                                borderRadius: "4px",
+                                borderRadius: "8px",
                                 cursor: "pointer",
                                 fontSize: "12px",
                               }}
@@ -236,16 +236,16 @@ export default function ManageLeavesPage() {
                         </td>
                       </tr>
                       {isReviewing && (
-                        <tr key={`${leave.id}-review`} style={{ borderBottom: "1px solid #f0f0f0", backgroundColor: "#fafafa" }}>
+                        <tr key={`${leave.id}-review`} style={{ borderBottom: "1px solid #ebe1d2", backgroundColor: "#fffaf5" }}>
                           <td colSpan={8} style={{ padding: "12px 16px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxWidth: "480px" }}>
                               {leave.reason && (
-                                <div style={{ fontSize: "13px", color: "#555" }}>
+                                <div style={{ fontSize: "13px", color: "#6f6a63" }}>
                                   <strong>Reason:</strong> {leave.reason}
                                 </div>
                               )}
                               {leave.status === "CANCELLATION_REQUESTED" && (
-                                <div style={{ fontSize: "13px", color: "#856404" }}>
+                                <div style={{ fontSize: "13px", color: "#8a6848" }}>
                                   <strong>Notice:</strong> Employee requested cancellation after approval.
                                 </div>
                               )}
@@ -257,8 +257,8 @@ export default function ManageLeavesPage() {
                                 style={{
                                   width: "100%",
                                   padding: "8px 10px",
-                                  border: "1px solid #ddd",
-                                  borderRadius: "6px",
+                                  border: "1px solid #dcc8b6",
+                                  borderRadius: "10px",
                                   fontSize: "13px",
                                   resize: "vertical",
                                   boxSizing: "border-box",
@@ -269,14 +269,14 @@ export default function ManageLeavesPage() {
                                   onClick={() => handleReview(leave.id, "approve")}
                                   disabled={submitting}
                                   style={{
-                                    backgroundColor: "#28a745",
+                                    backgroundColor: "#20cc76",
                                     color: "white",
                                     border: "none",
-                                    padding: "7px 20px",
-                                    borderRadius: "5px",
+                                    padding: "8px 20px",
+                                    borderRadius: "10px",
                                     cursor: "pointer",
                                     fontSize: "13px",
-                                    fontWeight: "500",
+                                    fontWeight: "600",
                                   }}
                                 >
                                   {submitting
@@ -292,11 +292,11 @@ export default function ManageLeavesPage() {
                                     backgroundColor: "#dc3545",
                                     color: "white",
                                     border: "none",
-                                    padding: "7px 20px",
-                                    borderRadius: "5px",
+                                    padding: "8px 20px",
+                                    borderRadius: "10px",
                                     cursor: "pointer",
                                     fontSize: "13px",
-                                    fontWeight: "500",
+                                    fontWeight: "600",
                                   }}
                                 >
                                   {submitting
@@ -327,15 +327,16 @@ function StatBox({ label, value, color }: { label: string; value: number; color:
     <div
       style={{
         backgroundColor: "white",
-        borderRadius: "8px",
-        border: "1px solid #e0e0e0",
-        padding: "16px",
+        borderRadius: "12px",
+        border: "1px solid #dcc8b6",
+        padding: "18px",
         textAlign: "center",
         borderTop: `3px solid ${color}`,
+        boxShadow: "0 8px 22px rgba(5,41,118,0.05)",
       }}
     >
       <div style={{ fontSize: "26px", fontWeight: "700", color }}>{value}</div>
-      <div style={{ fontSize: "12px", color: "#666", marginTop: "2px" }}>{label}</div>
+      <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "2px" }}>{label}</div>
     </div>
   );
 }
@@ -344,4 +345,4 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-const tdStyle: React.CSSProperties = { padding: "10px 12px", color: "#333" };
+const tdStyle: React.CSSProperties = { padding: "12px 12px", color: "#1d2751" };

@@ -623,7 +623,7 @@ export default function DashboardHome() {
             title="Site Interactive Calendar"
             leaves={managedLeaves}
             emptyMessage="Select a day to review leave requests for employees in your site."
-            accentColor="#6f42c1"
+            accentColor="#8142ff"
           />
         )}
       </div>
