@@ -32,6 +32,7 @@ export interface ManagedUser {
   isActive?: boolean;
   annualLeaveBalance?: number;
   delegatedDepartmentHead?: boolean;
+  canDownloadSignedLeavePdf?: boolean;
   site?: {
     id: string;
     name: string;
@@ -98,6 +99,11 @@ export const authService = {
 
   async setDepartmentHeadDelegation(payload: { userId: string; enabled: boolean }) {
     const response = await getApiClient().put("/users/department-head-delegation", payload);
+    return response.data;
+  },
+
+  async setSignedLeavePdfAccess(payload: { userId: string; enabled: boolean }) {
+    const response = await getApiClient().put("/users/leave-pdf-access", payload);
     return response.data;
   },
 

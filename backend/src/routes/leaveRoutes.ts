@@ -24,6 +24,11 @@ router.post(
   authorizeRole("SUPERVISOR", "DEPARTMENT_HEAD", "ADMIN"),
   leaveController.reviewLeaveRequest
 );
+router.get(
+  "/:leaveRequestId/signed-pdf",
+  authorizeRole("EMPLOYEE", "SUPERVISOR", "DEPARTMENT_HEAD", "ADMIN"),
+  leaveController.downloadSignedLeavePdf
+);
 
 export default router;
 

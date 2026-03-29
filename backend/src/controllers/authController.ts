@@ -75,6 +75,7 @@ export const authController = {
           fullName: user.fullName,
           role: user.role,
           delegatedDepartmentHead: user.delegatedDepartmentHead,
+          canDownloadSignedLeavePdf: user.canDownloadSignedLeavePdf,
           annualLeaveBalance: user.annualLeaveBalance,
         },
       });

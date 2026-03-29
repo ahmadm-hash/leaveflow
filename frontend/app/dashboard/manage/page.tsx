@@ -19,6 +19,7 @@ export default function ManageLeavesPage() {
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -76,6 +77,9 @@ export default function ManageLeavesPage() {
   const filtered =
     filter === "all" ? leaves : leaves.filter((l) => l.status === filter);
 
+  const canDownloadSignedPdf =
+    user?.role === "ADMIN" || user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead || user?.canDownloadSignedLeavePdf;
+
   const handleReview = async (id: string, action: "approve" | "reject") => {
     setSubmitting(true);
     try {
@@ -92,6 +96,30 @@ export default function ManageLeavesPage() {
       toast.error(msg ?? "Failed to review request");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDownloadSignedPdf = async (leaveRequestId: string) => {
+    setDownloadingId(leaveRequestId);
+    try {
+      const { blob, fileName } = await leaveService.downloadSignedLeavePdf(leaveRequestId);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+      toast.success("Signed leave PDF downloaded");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Object && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      toast.error(msg ?? "Failed to download signed PDF");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -217,6 +245,24 @@ export default function ManageLeavesPage() {
                               }}
                             >
                               Review
+                            </button>
+                          )}
+                          {canDownloadSignedPdf && leave.status === "APPROVED_BY_DEPARTMENT_HEAD" && (
+                            <button
+                              className="brand-btn brand-btn-outline"
+                              onClick={() => handleDownloadSignedPdf(leave.id)}
+                              disabled={downloadingId === leave.id}
+                              style={{
+                                backgroundColor: "#fff",
+                                color: "#2d6a4f",
+                                border: "1px solid #2d6a4f",
+                                padding: "6px 12px",
+                                borderRadius: "8px",
+                                cursor: downloadingId === leave.id ? "not-allowed" : "pointer",
+                                fontSize: "12px",
+                              }}
+                            >
+                              {downloadingId === leave.id ? "..." : "Download Signed PDF"}
                             </button>
                           )}
                           {isReviewing && (

@@ -59,6 +59,12 @@ router.put(
 );
 
 router.put(
+  "/leave-pdf-access",
+  authorizeRole("DEPARTMENT_HEAD"),
+  userController.setSignedLeavePdfAccess
+);
+
+router.put(
   "/:userId/deactivate",
   authorizeRole("ADMIN", "DEPARTMENT_HEAD"),
   userController.deactivateUser

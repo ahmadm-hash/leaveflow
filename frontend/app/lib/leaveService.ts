@@ -65,6 +65,18 @@ export const leaveService = {
     return response.data;
   },
 
+  async downloadSignedLeavePdf(leaveRequestId: string): Promise<{ blob: Blob; fileName: string }> {
+    const response = await getApiClient().get(`/leaves/${leaveRequestId}/signed-pdf`, {
+      responseType: "blob",
+    });
+
+    const disposition = response.headers["content-disposition"] as string | undefined;
+    const matched = disposition?.match(/filename=\"?([^\";]+)\"?/i);
+    const fileName = matched?.[1] ?? `leave-${leaveRequestId}.pdf`;
+
+    return { blob: response.data as Blob, fileName };
+  },
+
   async getDepartments(): Promise<{ departments: Department[] }> {
     const response = await getApiClient().get("/departments");
     return response.data;

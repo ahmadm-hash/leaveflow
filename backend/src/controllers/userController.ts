@@ -24,6 +24,7 @@ const userSelect = {
   isActive: true,
   annualLeaveBalance: true,
   delegatedDepartmentHead: true,
+  canDownloadSignedLeavePdf: true,
   site: {
     select: {
       id: true,
@@ -51,6 +52,7 @@ const userScalarSelect = {
   isActive: true,
   annualLeaveBalance: true,
   delegatedDepartmentHead: true,
+  canDownloadSignedLeavePdf: true,
   siteId: true,
 } satisfies Prisma.UserSelect;
 
@@ -564,6 +566,55 @@ export const userController = {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to update department head delegation", error });
+    }
+  },
+
+  setSignedLeavePdfAccess: async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+
+      if (req.user.effectiveRole !== "DEPARTMENT_HEAD" && req.user.role !== "ADMIN") {
+        res.status(403).json({ message: "Only department head can grant this permission" });
+        return;
+      }
+
+      const { userId, enabled } = req.body as { userId?: string; enabled?: boolean };
+
+      if (!userId || typeof enabled !== "boolean") {
+        res.status(400).json({ message: "userId and enabled are required" });
+        return;
+      }
+
+      const targetUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, isActive: true, role: true },
+      });
+
+      if (!targetUser || !targetUser.isActive) {
+        res.status(404).json({ message: "User not found or inactive" });
+        return;
+      }
+
+      if (targetUser.role === "ADMIN") {
+        res.status(400).json({ message: "Admin users do not need this permission" });
+        return;
+      }
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { canDownloadSignedLeavePdf: enabled },
+      });
+
+      res.json({
+        message: enabled
+          ? "Signed leave PDF permission granted"
+          : "Signed leave PDF permission removed",
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update signed PDF permission", error });
     }
   },
 };

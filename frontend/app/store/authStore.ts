@@ -9,6 +9,7 @@ interface User {
   role: "EMPLOYEE" | "SUPERVISOR" | "DEPARTMENT_HEAD" | "ADMIN";
   annualLeaveBalance?: number;
   delegatedDepartmentHead?: boolean;
+  canDownloadSignedLeavePdf?: boolean;
   site?: {
     id: string;
     name: string;

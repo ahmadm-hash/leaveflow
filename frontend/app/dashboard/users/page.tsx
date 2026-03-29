@@ -30,6 +30,7 @@ export default function UsersPage() {
   const canCreateSupervisor = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
   const canManageSupervisors = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
   const canResetEmployeePasswords = user?.role === "SUPERVISOR";
+  const canGrantSignedPdfAccess = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead;
 
   const defaultForm: ManagedUserPayload = {
     fullName: "",
@@ -165,6 +166,23 @@ export default function UsersPage() {
     }
   };
 
+  const toggleSignedPdfAccess = async (managedUser: ManagedUser) => {
+    try {
+      await authService.setSignedLeavePdfAccess({
+        userId: managedUser.id,
+        enabled: !managedUser.canDownloadSignedLeavePdf,
+      });
+      toast.success(!managedUser.canDownloadSignedLeavePdf ? "PDF access granted" : "PDF access removed");
+      await load();
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Object && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      toast.error(msg ?? "Failed to update PDF access");
+    }
+  };
+
   return (
     <div>
       <Toaster position="top-right" />
@@ -260,6 +278,9 @@ export default function UsersPage() {
                               {managedUser.delegatedDepartmentHead && (
                                 <span style={miniBadgeStyle("#bc9470")}>Delegated Head</span>
                               )}
+                              {managedUser.canDownloadSignedLeavePdf && (
+                                <span style={miniBadgeStyle("#2d6a4f")}>PDF Access</span>
+                              )}
                             </div>
                           </td>
                           <td style={tdStyle}>{managedUser.site?.name ?? "-"}</td>
@@ -285,6 +306,16 @@ export default function UsersPage() {
                               {canResetEmployeePasswords && managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && (
                                 <button className="brand-btn brand-btn-outline" onClick={() => handleResetPassword(managedUser)} style={outlineButtonStyle("#198754")}>
                                   Reset Password
+                                </button>
+                              )}
+
+                              {canGrantSignedPdfAccess && managedUser.isActive !== false && managedUser.id !== user?.id && (
+                                <button
+                                  className="brand-btn brand-btn-outline"
+                                  onClick={() => toggleSignedPdfAccess(managedUser)}
+                                  style={outlineButtonStyle("#2d6a4f")}
+                                >
+                                  {managedUser.canDownloadSignedLeavePdf ? "Revoke PDF Access" : "Grant PDF Access"}
                                 </button>
                               )}
 

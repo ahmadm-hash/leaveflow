@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Prisma, PrismaClient } from "@prisma/client";
+import PDFDocument from "pdfkit";
 
 const prisma = new PrismaClient();
 
@@ -9,6 +10,9 @@ const getInclusiveDays = (startDate: Date, endDate: Date): number => {
   const msPerDay = 1000 * 60 * 60 * 24;
   return Math.floor((endDate.getTime() - startDate.getTime()) / msPerDay) + 1;
 };
+
+const formatDate = (date: Date): string =>
+  date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
 const getSupervisedSiteIds = async (supervisorId: string): Promise<string[]> => {
   const sites = await prisma.site.findMany({
@@ -599,6 +603,144 @@ export const leaveController = {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to review leave request", error });
+    }
+  },
+
+  downloadSignedLeavePdf: async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+
+      const { leaveRequestId } = req.params;
+
+      const requester = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: {
+          id: true,
+          role: true,
+          isActive: true,
+          canDownloadSignedLeavePdf: true,
+        },
+      });
+
+      if (!requester || !requester.isActive) {
+        res.status(403).json({ message: "Inactive users cannot download signed leave PDFs" });
+        return;
+      }
+
+      const hasDirectAccess =
+        requester.role === "ADMIN" ||
+        req.user.effectiveRole === "DEPARTMENT_HEAD" ||
+        requester.canDownloadSignedLeavePdf;
+
+      if (!hasDirectAccess) {
+        res.status(403).json({ message: "You do not have permission to download signed leave PDFs" });
+        return;
+      }
+
+      const leaveRequest = await prisma.leaveRequest.findUnique({
+        where: { id: leaveRequestId },
+        select: {
+          id: true,
+          leaveType: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          reason: true,
+          createdAt: true,
+          employee: {
+            select: {
+              fullName: true,
+              username: true,
+            },
+          },
+          site: {
+            select: {
+              name: true,
+            },
+          },
+          department: {
+            select: {
+              name: true,
+            },
+          },
+          leaveReview: {
+            where: { role: "DEPARTMENT_HEAD" },
+            orderBy: { reviewedAt: "desc" },
+            select: {
+              reviewedAt: true,
+              reviewer: {
+                select: {
+                  fullName: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!leaveRequest) {
+        res.status(404).json({ message: "Leave request not found" });
+        return;
+      }
+
+      if (leaveRequest.status !== "APPROVED_BY_DEPARTMENT_HEAD") {
+        res.status(400).json({ message: "PDF download is available only after final department head approval" });
+        return;
+      }
+
+      const deptHeadReview = leaveRequest.leaveReview[0];
+      const signedBy = deptHeadReview?.reviewer?.fullName ?? "Department Head";
+      const signedAt = deptHeadReview?.reviewedAt ?? leaveRequest.createdAt;
+
+      const fileName = `leave-${leaveRequest.id}.pdf`;
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename=\"${fileName}\"`);
+
+      const doc = new PDFDocument({ size: "A4", margin: 48 });
+      doc.pipe(res);
+
+      doc.fontSize(19).text("Leave Approval Certificate", { align: "center" });
+      doc.moveDown(0.4);
+      doc.fontSize(10).fillColor("#6b7280").text("Issued by LeaveFlow", { align: "center" });
+      doc.fillColor("black");
+      doc.moveDown(1.2);
+
+      doc.fontSize(12).text(`Employee: ${leaveRequest.employee.fullName}`);
+      doc.text(`Username: ${leaveRequest.employee.username}`);
+      doc.text(`Leave Type: ${leaveRequest.leaveType}`);
+      doc.text(`Department: ${leaveRequest.department?.name ?? "-"}`);
+      doc.text(`Site: ${leaveRequest.site?.name ?? "-"}`);
+      doc.text(`Start Date: ${formatDate(leaveRequest.startDate)}`);
+      doc.text(`End Date: ${formatDate(leaveRequest.endDate)}`);
+      doc.text(`Total Days: ${getInclusiveDays(leaveRequest.startDate, leaveRequest.endDate)}`);
+      doc.text(`Status: Final Approval Completed`);
+
+      if (leaveRequest.reason) {
+        doc.moveDown(0.6);
+        doc.fontSize(11).fillColor("#374151").text("Reason", { underline: true });
+        doc.fillColor("black").fontSize(12).text(leaveRequest.reason);
+      }
+
+      doc.moveDown(2.4);
+      doc.fontSize(11).fillColor("#6b7280").text("Department Head Signature", { align: "left" });
+      doc.moveDown(0.3);
+      doc.fontSize(16).fillColor("#111827").text(signedBy, { align: "left" });
+      doc.fontSize(11).fillColor("#6b7280").text(`Signed on ${formatDate(signedAt)}`, { align: "left" });
+
+      doc.moveDown(2);
+      doc
+        .fontSize(9)
+        .fillColor("#9ca3af")
+        .text(`Reference: ${leaveRequest.id}`, { align: "center" });
+
+      doc.end();
+    } catch (error) {
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Failed to generate signed leave PDF", error });
+      }
     }
   },
 };
