@@ -702,11 +702,25 @@ export const leaveController = {
       const doc = new PDFDocument({ size: "A4", margin: 48 });
       doc.pipe(res);
 
-      doc.fontSize(19).text("Leave Approval Certificate", { align: "center" });
-      doc.moveDown(0.4);
-      doc.fontSize(10).fillColor("#6b7280").text("Issued by LeaveFlow", { align: "center" });
+      doc
+        .rect(40, 34, 515, 90)
+        .fillAndStroke("#f6f9ff", "#d3e0ff");
+      doc.fillColor("#0b3a86");
+      doc.fontSize(11).text("Royal Commission LeaveFlow", 56, 52, { align: "left" });
+      doc.fontSize(21).text("Leave Approval Certificate", 56, 70, { align: "left" });
+      doc
+        .fontSize(10)
+        .fillColor("#5b6477")
+        .text("Official copy for approved leave request", 56, 96, { align: "left" });
+
+      doc
+        .roundedRect(415, 52, 118, 54, 8)
+        .fillAndStroke("#ecfdf5", "#6abf8f");
+      doc.fillColor("#13653f").fontSize(11).text("FINAL APPROVED", 427, 70);
+      doc.fillColor("#13653f").fontSize(9).text("Department Head Signed", 425, 86);
+
       doc.fillColor("black");
-      doc.moveDown(1.2);
+      doc.y = 146;
 
       doc.fontSize(12).text(`Employee: ${leaveRequest.employee.fullName}`);
       doc.text(`Username: ${leaveRequest.employee.username}`);
@@ -724,11 +738,32 @@ export const leaveController = {
         doc.fillColor("black").fontSize(12).text(leaveRequest.reason);
       }
 
-      doc.moveDown(2.4);
-      doc.fontSize(11).fillColor("#6b7280").text("Department Head Signature", { align: "left" });
-      doc.moveDown(0.3);
-      doc.fontSize(16).fillColor("#111827").text(signedBy, { align: "left" });
-      doc.fontSize(11).fillColor("#6b7280").text(`Signed on ${formatDate(signedAt)}`, { align: "left" });
+      doc.moveDown(2.2);
+
+      const stampCenterX = 116;
+      const stampCenterY = doc.y + 58;
+      doc.circle(stampCenterX, stampCenterY, 52).lineWidth(2).stroke("#b42318");
+      doc.circle(stampCenterX, stampCenterY, 41).lineWidth(1).stroke("#b42318");
+      doc
+        .fontSize(10)
+        .fillColor("#b42318")
+        .text("OFFICIAL", stampCenterX - 26, stampCenterY - 10, { width: 52, align: "center" });
+      doc
+        .fontSize(8)
+        .fillColor("#b42318")
+        .text("RCJY", stampCenterX - 18, stampCenterY + 8, { width: 36, align: "center" });
+
+      doc
+        .roundedRect(190, stampCenterY - 36, 330, 108, 10)
+        .fillAndStroke("#fbfcff", "#d5ddee");
+      doc
+        .moveTo(208, stampCenterY + 18)
+        .lineTo(492, stampCenterY + 18)
+        .lineWidth(1)
+        .stroke("#9aa4b2");
+      doc.fontSize(10).fillColor("#6b7280").text("Department Head Signature", 208, stampCenterY - 20);
+      doc.fontSize(16).fillColor("#111827").text(signedBy, 208, stampCenterY - 2);
+      doc.fontSize(10).fillColor("#6b7280").text(`Signed on ${formatDate(signedAt)}`, 208, stampCenterY + 28);
 
       doc.moveDown(2);
       doc
