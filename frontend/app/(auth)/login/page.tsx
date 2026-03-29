@@ -46,24 +46,28 @@ export default function LoginPage() {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        background: "linear-gradient(140deg, #f7f3e9 0%, #f0e8d8 45%, #eef6f2 100%)",
       }}
     >
       <Toaster position="top-right" />
       <div
         style={{
-          backgroundColor: "white",
+          backgroundColor: "#fffdf8",
           padding: "40px",
-          borderRadius: "8px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          borderRadius: "14px",
+          boxShadow: "0 14px 34px rgba(13, 61, 42, 0.15)",
+          border: "1px solid #eadfc7",
           width: "100%",
           maxWidth: "400px",
         }}
       >
-        <h1 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>
-          LeaveFlow
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+          <span className="brand-mark">RC</span>
+        </div>
+        <h1 style={{ textAlign: "center", marginBottom: "8px", color: "#0d3d2a", fontSize: "26px" }}>
+          Royal Commission LeaveFlow
         </h1>
-        <h2 style={{ textAlign: "center", fontSize: "20px", marginBottom: "30px", color: "#666" }}>
+        <h2 style={{ textAlign: "center", fontSize: "16px", marginBottom: "28px", color: "#6a5b3b", fontWeight: 600 }}>
           Login
         </h2>
 
@@ -81,10 +85,11 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 padding: "10px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: "1px solid #d2c5ab",
+                borderRadius: "8px",
                 fontSize: "14px",
                 boxSizing: "border-box",
+                backgroundColor: "#fffefb",
               }}
             />
           </div>
@@ -102,10 +107,11 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 padding: "10px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
+                border: "1px solid #d2c5ab",
+                borderRadius: "8px",
                 fontSize: "14px",
                 boxSizing: "border-box",
+                backgroundColor: "#fffefb",
               }}
             />
           </div>
@@ -115,13 +121,14 @@ export default function LoginPage() {
             disabled={loading}
             style={{
               width: "100%",
-              padding: "10px",
-              backgroundColor: loading ? "#ccc" : "#007bff",
+              padding: "11px",
+              background: loading ? "#9aa79f" : "linear-gradient(135deg, #126343, #0d3d2a)",
               color: "white",
               border: "none",
-              borderRadius: "4px",
+              borderRadius: "8px",
               fontSize: "16px",
               cursor: loading ? "not-allowed" : "pointer",
+              fontWeight: 600,
             }}
           >
             {loading ? "Loading..." : "Login"}

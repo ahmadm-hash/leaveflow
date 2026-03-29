@@ -8,23 +8,27 @@ export default function RegisterPage() {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        background: "linear-gradient(140deg, #f7f3e9 0%, #f0e8d8 45%, #eef6f2 100%)",
       }}
     >
       <div
         style={{
-          backgroundColor: "white",
+          backgroundColor: "#fffdf8",
           padding: "40px",
-          borderRadius: "8px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+          borderRadius: "14px",
+          boxShadow: "0 14px 34px rgba(13, 61, 42, 0.15)",
+          border: "1px solid #eadfc7",
           width: "100%",
           maxWidth: "400px",
         }}
       >
-        <h1 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>
-          LeaveFlow
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+          <span className="brand-mark">RC</span>
+        </div>
+        <h1 style={{ textAlign: "center", marginBottom: "8px", color: "#0d3d2a", fontSize: "26px" }}>
+          Royal Commission LeaveFlow
         </h1>
-        <h2 style={{ textAlign: "center", fontSize: "20px", marginBottom: "30px", color: "#666" }}>
+        <h2 style={{ textAlign: "center", fontSize: "20px", marginBottom: "20px", color: "#6a5b3b" }}>
           Registration Closed
         </h2>
 
@@ -38,7 +42,7 @@ export default function RegisterPage() {
             Already have an account?{" "}
             <a
               href="/login"
-              style={{ color: "#007bff", textDecoration: "none" }}
+              style={{ color: "#126343", textDecoration: "none", fontWeight: 600 }}
             >
               Login here
             </a>

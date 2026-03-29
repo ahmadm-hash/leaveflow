@@ -1,0 +1,49 @@
+:root {
+  --rc-green-900: #0d3d2a;
+  --rc-green-700: #126343;
+  --rc-green-600: #1a7a53;
+  --rc-gold-600: #b89447;
+  --rc-gold-500: #c8a45a;
+  --rc-cream-100: #f6f2e8;
+  --rc-cream-200: #ece4d4;
+  --rc-ink-900: #1f2a23;
+  --rc-ink-700: #46544b;
+  --rc-danger-600: #b83232;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  color: var(--rc-ink-900);
+  background:
+    radial-gradient(circle at 15% 15%, rgba(200, 164, 90, 0.16), transparent 38%),
+    radial-gradient(circle at 85% 10%, rgba(18, 99, 67, 0.14), transparent 42%),
+    linear-gradient(180deg, #fcfaf5 0%, #f4efe5 100%);
+}
+
+a {
+  color: inherit;
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--rc-green-700), var(--rc-green-900));
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: 0 8px 18px rgba(13, 61, 42, 0.22);
+}

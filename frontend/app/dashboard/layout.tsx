@@ -15,8 +15,8 @@ function NavItem({ href, label, active }: { href: string; label: string; active:
         display: "block",
         padding: "9px 12px",
         borderRadius: "6px",
-        color: active ? "#007bff" : "#555",
-        backgroundColor: active ? "#e8f0fe" : "transparent",
+        color: active ? "#0d3d2a" : "#485850",
+        backgroundColor: active ? "#e8f3ed" : "transparent",
         textDecoration: "none",
         fontSize: "14px",
         fontWeight: active ? "600" : "400",
@@ -92,37 +92,40 @@ export default function DashboardLayout({
   const canUseSitesPage = canUseDepartmentHeadTools;
 
   const roleColors: Record<string, string> = {
-    EMPLOYEE: "#007bff",
-    SUPERVISOR: "#6f42c1",
-    DEPARTMENT_HEAD: "#fd7e14",
-    ADMIN: "#dc3545",
+    EMPLOYEE: "#126343",
+    SUPERVISOR: "#0d3d2a",
+    DEPARTMENT_HEAD: "#b89447",
+    ADMIN: "#7a1f1f",
   };
-  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#007bff";
+  const roleColor = roleColors[user?.role ?? "EMPLOYEE"] ?? "#126343";
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f4efe5" }}>
       {/* Sidebar */}
       <div
         style={{
           width: "240px",
           minWidth: "240px",
-          backgroundColor: "white",
-          borderRight: "1px solid #e0e0e0",
+          backgroundColor: "#fffdf8",
+          borderRight: "1px solid #e7dcc4",
           padding: "0",
-          boxShadow: "2px 0 8px rgba(0,0,0,0.04)",
+          boxShadow: "2px 0 12px rgba(13, 61, 42, 0.08)",
           display: "flex",
           flexDirection: "column",
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid #f0f0f0" }}>
-          <Link href="/dashboard/home" style={{ textDecoration: "none" }}>
-            <span style={{ fontSize: "20px", fontWeight: "700", color: "#007bff" }}>LeaveFlow</span>
+        <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid #efe6d3" }}>
+          <Link href="/dashboard/home" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span className="brand-mark">RC</span>
+            <span style={{ fontSize: "17px", fontWeight: "700", color: "#0d3d2a", lineHeight: 1.2 }}>
+              Royal Commission
+            </span>
           </Link>
         </div>
 
         {/* User card */}
-        <div style={{ padding: "16px", borderBottom: "1px solid #f0f0f0" }}>
+        <div style={{ padding: "16px", borderBottom: "1px solid #efe6d3" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <div
               style={{
@@ -187,14 +190,14 @@ export default function DashboardLayout({
         </nav>
 
         {/* Logout */}
-        <div style={{ padding: "12px 8px", borderTop: "1px solid #f0f0f0" }}>
+        <div style={{ padding: "12px 8px", borderTop: "1px solid #efe6d3" }}>
           <button
             onClick={handleLogout}
             style={{
               width: "100%",
               backgroundColor: "transparent",
-              color: "#dc3545",
-              border: "1px solid #dc3545",
+              color: "#9f2f2f",
+              border: "1px solid #c98484",
               padding: "8px 12px",
               borderRadius: "6px",
               cursor: "pointer",

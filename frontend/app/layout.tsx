@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { initializeApiClient } from "./lib/apiClient";
+import "./globals.css";
 
 export default function RootLayout({
   children,
@@ -14,7 +15,13 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, padding: 0, fontFamily: "system-ui, sans-serif" }}>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          fontFamily: "Cairo, Tajawal, Segoe UI, Tahoma, sans-serif",
+        }}
+      >
         {children}
       </body>
     </html>
