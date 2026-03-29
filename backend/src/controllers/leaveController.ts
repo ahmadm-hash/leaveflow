@@ -282,7 +282,7 @@ export const leaveController = {
       res.json({ leaveRequests });
     } catch (error) {
       console.error("getMyLeaveRequests failed", error);
-      res.status(500).json({ message: "Failed to fetch leave requests", error });
+      res.json({ leaveRequests: [], degraded: true });
     }
   },
 
@@ -400,7 +400,8 @@ export const leaveController = {
 
       res.json({ leaveRequests });
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pending leaves", error });
+      console.error("getPendingSiteLeaves failed", error);
+      res.json({ leaveRequests: [], degraded: true });
     }
   },
 
@@ -433,7 +434,8 @@ export const leaveController = {
 
       res.json({ leaveRequests });
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch all leaves", error });
+      console.error("getAllLeaves failed", error);
+      res.json({ leaveRequests: [], degraded: true });
     }
   },
 

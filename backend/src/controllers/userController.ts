@@ -161,7 +161,7 @@ export const userController = {
       res.json({ users });
     } catch (error) {
       console.error("[getAllUsers] error:", error);
-      res.status(500).json({ message: "Failed to fetch users", error });
+      res.json({ users: [], degraded: true });
     }
   },
 
@@ -199,7 +199,7 @@ export const userController = {
       res.json({ users });
     } catch (error) {
       console.error("[getUsersBySite] error:", error);
-      res.status(500).json({ message: "Failed to fetch site users", error });
+      res.json({ users: [], degraded: true });
     }
   },
 
