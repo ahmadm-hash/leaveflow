@@ -207,6 +207,16 @@ export default function DashboardHome() {
       .sort((a, b) => a.siteName.localeCompare(b.siteName));
   }, [actsAsDepartmentHead, user?.role, managedEmployees, managedLeaves]);
 
+  const todayAttendanceSummary = useMemo(() => {
+    const sites = todayPresenceRows.length;
+    const present = todayPresenceRows.reduce((acc, row) => acc + row.present.length, 0);
+    const absent = todayPresenceRows.reduce((acc, row) => acc + row.absent.length, 0);
+    const total = present + absent;
+    const presentRate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+    return { sites, present, absent, presentRate };
+  }, [todayPresenceRows]);
+
   const reportSites = useMemo(() => {
     const siteMap = new Map<string, string>();
     for (const employee of managedEmployees) {
@@ -448,22 +458,64 @@ export default function DashboardHome() {
 
           {todayPresenceRows.length > 0 && (
             <div className="surface-card" style={{ padding: "20px" }}>
-              <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
-                Today&apos;s Attendance By Site
-              </h2>
-              <p style={{ margin: "0 0 14px 0", fontSize: "12px", color: "#8c7a69" }}>
-                {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px", maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "12px",
+                  marginBottom: "14px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
+                    Today&apos;s Attendance By Site
+                  </h2>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#8c7a69" }}>
+                    {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <span style={summaryPillBlueStyle}>{todayAttendanceSummary.sites} Sites</span>
+                  <span style={summaryPillSuccessStyle}>{todayAttendanceSummary.present} Present</span>
+                  <span style={summaryPillDangerStyle}>{todayAttendanceSummary.absent} On Leave</span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  height: "8px",
+                  borderRadius: "999px",
+                  background: "#e5ecfb",
+                  overflow: "hidden",
+                  marginBottom: "16px",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${todayAttendanceSummary.presentRate}%`,
+                    height: "100%",
+                    borderRadius: "999px",
+                    background: "linear-gradient(90deg, #20cc76 0%, #4cc4ff 100%)",
+                    transition: "width 240ms ease",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
                 {todayPresenceRows.map((row) => (
-                  <div key={row.siteId}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
+                  <div key={row.siteId} style={sitePresenceCardStyle}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
                       <span style={{ fontSize: "14px", fontWeight: 700, color: "#1d2751" }}>🏗️ {row.siteName}</span>
-                      <span style={pillSuccessStyle}>✅ {row.present.length} Present</span>
-                      {row.absent.length > 0 && (
-                        <span style={pillDangerStyle}>🏖️ {row.absent.length} On Leave</span>
-                      )}
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                        <span style={pillSuccessStyle}>✅ {row.present.length} Present</span>
+                        {row.absent.length > 0 && (
+                          <span style={pillDangerStyle}>🏖️ {row.absent.length} On Leave</span>
+                        )}
+                      </div>
                     </div>
+
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                       {row.present.map((emp) => (
                         <div key={emp.id} style={employeePresentChipStyle}>
@@ -471,12 +523,20 @@ export default function DashboardHome() {
                           {emp.fullName}
                         </div>
                       ))}
-                      {row.absent.map((emp) => (
-                        <div key={emp.id} style={employeeAbsentChipStyle}>
-                          <span style={absentDotStyle} />
-                          {emp.fullName}
-                        </div>
-                      ))}
+                      {row.absent.length > 0 && (
+                        row.absent.map((emp) => (
+                          <div key={emp.id} style={employeeAbsentChipStyle}>
+                            <span style={absentDotStyle} />
+                            {emp.fullName}
+                          </div>
+                        ))
+                      )}
+                      {row.present.length === 0 && row.absent.length > 0 && (
+                        <span style={siteHintTextStyle}>No one present in this site today.</span>
+                      )}
+                      {row.absent.length === 0 && (
+                        <span style={siteHintTextStyle}>No one on leave from this site today.</span>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -848,4 +908,44 @@ const absentDotStyle: React.CSSProperties = {
   borderRadius: "50%",
   backgroundColor: "#dc3545",
   display: "inline-block",
+};
+
+const summaryPillBlueStyle: React.CSSProperties = {
+  background: "#e8f0ff",
+  color: "#103576",
+  borderRadius: "999px",
+  padding: "5px 10px",
+  fontSize: "12px",
+  fontWeight: 700,
+};
+
+const summaryPillSuccessStyle: React.CSSProperties = {
+  background: "#daf7ea",
+  color: "#0a9d76",
+  borderRadius: "999px",
+  padding: "5px 10px",
+  fontSize: "12px",
+  fontWeight: 700,
+};
+
+const summaryPillDangerStyle: React.CSSProperties = {
+  background: "#fce8ea",
+  color: "#842029",
+  borderRadius: "999px",
+  padding: "5px 10px",
+  fontSize: "12px",
+  fontWeight: 700,
+};
+
+const sitePresenceCardStyle: React.CSSProperties = {
+  border: "1px solid #dde8fb",
+  borderRadius: "14px",
+  background: "linear-gradient(145deg, #ffffff 0%, #f7faff 100%)",
+  padding: "12px",
+};
+
+const siteHintTextStyle: React.CSSProperties = {
+  color: "#7f8ab0",
+  fontSize: "12px",
+  fontWeight: 500,
 };
