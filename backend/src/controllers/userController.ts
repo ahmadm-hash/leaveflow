@@ -41,6 +41,55 @@ const userSelect = {
   },
 } satisfies Prisma.UserSelect;
 
+// Scalar-only select for resilient list queries
+const userScalarSelect = {
+  id: true,
+  email: true,
+  username: true,
+  fullName: true,
+  role: true,
+  isActive: true,
+  annualLeaveBalance: true,
+  delegatedDepartmentHead: true,
+  siteId: true,
+} satisfies Prisma.UserSelect;
+
+type UserScalarRow = Prisma.UserGetPayload<{ select: typeof userScalarSelect }>;
+
+const hydrateUserRows = async (rows: UserScalarRow[]) => {
+  const siteIds = Array.from(new Set(rows.map((r) => r.siteId).filter(Boolean))) as string[];
+  const userIds = rows.map((r) => r.id);
+
+  const [sites, supervisorSiteLinks] = await Promise.all([
+    siteIds.length > 0
+      ? prisma.site.findMany({
+          where: { id: { in: siteIds } },
+          select: { id: true, name: true, location: true },
+        })
+      : Promise.resolve([]),
+    prisma.site.findMany({
+      where: { supervisorId: { in: userIds } },
+      select: { id: true, name: true, location: true, supervisorId: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
+
+  const siteById = new Map(sites.map((s) => [s.id, s]));
+  const supervisedSitesByUser = new Map<string, { id: string; name: string; location: string }[]>();
+  for (const site of supervisorSiteLinks) {
+    if (!site.supervisorId) continue;
+    const current = supervisedSitesByUser.get(site.supervisorId) ?? [];
+    current.push({ id: site.id, name: site.name, location: site.location });
+    supervisedSitesByUser.set(site.supervisorId, current);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    site: row.siteId ? (siteById.get(row.siteId) ?? null) : null,
+    supervisedSites: supervisedSitesByUser.get(row.id) ?? [],
+  }));
+};
+
 export const userController = {
   getProfile: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -89,13 +138,14 @@ export const userController = {
 
   getAllUsers: async (_req: Request, res: Response): Promise<void> => {
     try {
-      const users = await prisma.user.findMany({
-        select: userSelect,
+      const rows = await prisma.user.findMany({
+        select: userScalarSelect,
         orderBy: { createdAt: "desc" },
       });
-
+      const users = await hydrateUserRows(rows);
       res.json({ users });
     } catch (error) {
+      console.error("[getAllUsers] error:", error);
       res.status(500).json({ message: "Failed to fetch users", error });
     }
   },
@@ -114,17 +164,18 @@ export const userController = {
         return;
       }
 
-      const users = await prisma.user.findMany({
+      const rows = await prisma.user.findMany({
         where: {
           siteId: { in: supervisedSiteIds },
           role: "EMPLOYEE",
         },
-        select: userSelect,
+        select: userScalarSelect,
         orderBy: { fullName: "asc" },
       });
-
+      const users = await hydrateUserRows(rows);
       res.json({ users });
     } catch (error) {
+      console.error("[getUsersBySite] error:", error);
       res.status(500).json({ message: "Failed to fetch site users", error });
     }
   },

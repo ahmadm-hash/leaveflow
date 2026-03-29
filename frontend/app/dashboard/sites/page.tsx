@@ -36,8 +36,23 @@ export default function SitesPage() {
 
     setLoading(true);
     setError(null);
+
+    const retry = async <T,>(fn: () => Promise<T>, attempts = 6): Promise<T> => {
+      let lastErr: unknown;
+      for (let i = 1; i <= attempts; i++) {
+        try { return await fn(); } catch (e) {
+          lastErr = e;
+          if (i < attempts) await new Promise((r) => setTimeout(r, Math.min(250 * i * i, 2000)));
+        }
+      }
+      throw lastErr;
+    };
+
     try {
-      const [usersResp, sitesResp] = await Promise.all([authService.getAllUsers(), leaveService.getSites()]);
+      const [usersResp, sitesResp] = await Promise.all([
+        retry(() => authService.getAllUsers()),
+        retry(() => leaveService.getSites()),
+      ]);
       const allUsers = usersResp.users ?? [];
       setSites(sitesResp.sites ?? []);
       setSupervisors(allUsers.filter((managedUser) => managedUser.role === "SUPERVISOR" && managedUser.isActive !== false));

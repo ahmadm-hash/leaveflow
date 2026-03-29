@@ -34,13 +34,30 @@ export default function DashboardHome() {
     let isMounted = true;
 
     const load = async () => {
+      const retry = async <T,>(fn: () => Promise<T>, attempts = 6): Promise<T> => {
+        let lastErr: unknown;
+        for (let i = 1; i <= attempts; i++) {
+          try { return await fn(); } catch (e) {
+            lastErr = e;
+            if (i < attempts) await new Promise((r) => setTimeout(r, Math.min(250 * i * i, 2000)));
+          }
+        }
+        throw lastErr;
+      };
+
       try {
-        const personalPromise = leaveService.getMyLeaveRequests();
+        const personalPromise = retry(() => leaveService.getMyLeaveRequests());
         const managerPromise = !canViewPresence
           ? Promise.resolve(null)
           : actsAsDepartmentHead || user?.role === "ADMIN"
-            ? Promise.all([leaveService.getAllLeaveRequests(), authService.getAllUsers()])
-            : Promise.all([leaveService.getAllLeaveRequests(), authService.getSiteEmployees()]);
+            ? Promise.all([
+                retry(() => leaveService.getAllLeaveRequests()),
+                retry(() => authService.getAllUsers()),
+              ])
+            : Promise.all([
+                retry(() => leaveService.getAllLeaveRequests()),
+                retry(() => authService.getSiteEmployees()),
+              ]);
 
         const personal = await personalPromise;
         if (!isMounted) return;
