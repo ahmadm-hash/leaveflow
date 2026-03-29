@@ -344,10 +344,10 @@ export default function DashboardHome() {
           marginBottom: "24px",
         }}
       >
-        <h1 style={{ margin: "0 0 4px 0", fontSize: "22px", color: "#333" }}>
+        <h1 style={{ margin: "0 0 4px 0", fontSize: "22px", color: "#052976" }}>
           Welcome back, {user?.fullName?.split(" ")[0]}!
         </h1>
-        <p style={{ margin: "0 0 16px 0", color: "#666", fontSize: "14px" }}>
+        <p style={{ margin: "0 0 16px 0", color: "#6f6a63", fontSize: "14px" }}>
           {user?.role}
           {user?.delegatedDepartmentHead ? " · Delegated Department Head" : ""}
           {user?.site ? ` · ${user.site.name}` : ""}
@@ -369,7 +369,7 @@ export default function DashboardHome() {
       </div>
 
       <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontSize: "15px", color: "#555", margin: "0 0 12px 0", fontWeight: "600" }}>
+        <h2 style={{ fontSize: "15px", color: "#6f6a63", margin: "0 0 12px 0", fontWeight: "600" }}>
           Quick Actions
         </h2>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -399,20 +399,20 @@ export default function DashboardHome() {
         <div
           style={{
             backgroundColor: "white",
-            borderRadius: "10px",
-            border: "1px solid #e0e0e0",
-            padding: "20px",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+            borderRadius: "14px",
+            border: "1px solid #dcc8b6",
+            padding: "22px",
+            boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
             marginBottom: "24px",
           }}
         >
-          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#333", fontWeight: "600" }}>
+          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
             Presence By Site
           </h2>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
               <thead>
-                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <tr style={{ backgroundColor: "#fff8f0" }}>
                   {[
                     "Site",
                     "Employees",
@@ -442,29 +442,29 @@ export default function DashboardHome() {
         <div
           style={{
             backgroundColor: "white",
-            borderRadius: "10px",
-            border: "1px solid #e0e0e0",
-            padding: "20px",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+            borderRadius: "14px",
+            border: "1px solid #dcc8b6",
+            padding: "22px",
+            boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
             marginBottom: "24px",
           }}
         >
-          <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#333", fontWeight: "600" }}>
+          <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
             Today&apos;s Attendance By Site
           </h2>
-          <p style={{ margin: "0 0 14px 0", fontSize: "12px", color: "#888" }}>
+          <p style={{ margin: "0 0 14px 0", fontSize: "12px", color: "#8c7a69" }}>
             {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             {todayPresenceRows.map((row) => (
               <div key={row.siteId}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#333" }}>🏗️ {row.siteName}</span>
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#1d2751" }}>🏗️ {row.siteName}</span>
                   <span style={{
-                    backgroundColor: "#d4edda",
-                    color: "#155724",
-                    borderRadius: "12px",
-                    padding: "2px 10px",
+                    backgroundColor: "#daf7ea",
+                    color: "#0a9d76",
+                    borderRadius: "999px",
+                    padding: "3px 10px",
                     fontSize: "12px",
                     fontWeight: 600,
                   }}>
@@ -474,8 +474,8 @@ export default function DashboardHome() {
                     <span style={{
                       backgroundColor: "#f8d7da",
                       color: "#721c24",
-                      borderRadius: "12px",
-                      padding: "2px 10px",
+                      borderRadius: "999px",
+                      padding: "3px 10px",
                       fontSize: "12px",
                       fontWeight: 600,
                     }}>
@@ -486,17 +486,17 @@ export default function DashboardHome() {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   {row.present.map((emp) => (
                     <div key={emp.id} style={{
-                      backgroundColor: "#f0fff4",
-                      border: "1px solid #b7ebc8",
-                      borderRadius: "8px",
-                      padding: "6px 12px",
+                      backgroundColor: "#f2fbf6",
+                      border: "1px solid #b7e8d3",
+                      borderRadius: "10px",
+                      padding: "7px 12px",
                       fontSize: "13px",
-                      color: "#1a6334",
+                      color: "#0a9d76",
                       display: "flex",
                       alignItems: "center",
                       gap: "6px",
                     }}>
-                      <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#28a745", display: "inline-block" }} />
+                      <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#20cc76", display: "inline-block" }} />
                       {emp.fullName}
                     </div>
                   ))}
@@ -504,8 +504,8 @@ export default function DashboardHome() {
                     <div key={emp.id} style={{
                       backgroundColor: "#fff5f5",
                       border: "1px solid #f5c2c7",
-                      borderRadius: "8px",
-                      padding: "6px 12px",
+                      borderRadius: "10px",
+                      padding: "7px 12px",
                       fontSize: "13px",
                       color: "#842029",
                       display: "flex",
@@ -527,14 +527,14 @@ export default function DashboardHome() {
         <div
           style={{
             backgroundColor: "white",
-            borderRadius: "10px",
-            border: "1px solid #e0e0e0",
-            padding: "20px",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+            borderRadius: "14px",
+            border: "1px solid #dcc8b6",
+            padding: "22px",
+            boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
             marginBottom: "24px",
           }}
         >
-          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#333", fontWeight: "600" }}>
+          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
             Excel Report
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(140px, 1fr))", gap: "12px", marginBottom: "12px" }}>
@@ -592,11 +592,11 @@ export default function DashboardHome() {
             onClick={handleExportExcel}
             disabled={exportingReport}
             style={{
-              backgroundColor: "#198754",
+              backgroundColor: "#20cc76",
               color: "white",
               border: "none",
-              borderRadius: "8px",
-              padding: "10px 16px",
+              borderRadius: "10px",
+              padding: "11px 16px",
               fontSize: "13px",
               fontWeight: 600,
               cursor: exportingReport ? "not-allowed" : "pointer",
@@ -631,14 +631,14 @@ export default function DashboardHome() {
       <div
         style={{
           backgroundColor: "white",
-          borderRadius: "10px",
-          border: "1px solid #e0e0e0",
-          padding: "20px",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+          borderRadius: "14px",
+          border: "1px solid #dcc8b6",
+          padding: "22px",
+          boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <h2 style={{ margin: 0, fontSize: "16px", color: "#333", fontWeight: "600" }}>
+          <h2 style={{ margin: 0, fontSize: "16px", color: "#052976", fontWeight: "700" }}>
             {canSubmitLeave ? "Recent Leave Requests" : "Recent Team Leave Requests"}
           </h2>
           <Link href={canSubmitLeave ? "/dashboard/leaves" : "/dashboard/manage"} style={{ color: "#052976", fontSize: "13px", textDecoration: "none" }}>
@@ -651,7 +651,7 @@ export default function DashboardHome() {
         ) : recentLeaves.length === 0 ? (
           <div style={{ textAlign: "center", padding: "30px 0" }}>
             <div style={{ fontSize: "36px", marginBottom: "8px" }}>📋</div>
-            <div style={{ color: "#666", fontSize: "14px", marginBottom: "12px" }}>
+            <div style={{ color: "#6f6a63", fontSize: "14px", marginBottom: "12px" }}>
               {canSubmitLeave ? "No leave requests yet." : "No team leave requests found."}
             </div>
             {canSubmitLeave ? (
@@ -660,8 +660,8 @@ export default function DashboardHome() {
                 style={{
                   backgroundColor: "#052976",
                   color: "white",
-                  padding: "8px 20px",
-                  borderRadius: "6px",
+                  padding: "9px 20px",
+                  borderRadius: "10px",
                   textDecoration: "none",
                   fontSize: "14px",
                 }}
@@ -674,8 +674,8 @@ export default function DashboardHome() {
                 style={{
                   backgroundColor: "#052976",
                   color: "white",
-                  padding: "8px 20px",
-                  borderRadius: "6px",
+                  padding: "9px 20px",
+                  borderRadius: "10px",
                   textDecoration: "none",
                   fontSize: "14px",
                 }}
@@ -694,9 +694,9 @@ export default function DashboardHome() {
                     style={{
                       padding: "8px 12px",
                       textAlign: "left",
-                      color: "#888",
+                      color: "#8c7a69",
                       fontWeight: "500",
-                      borderBottom: "1px solid #f0f0f0",
+                      borderBottom: "1px solid #ebe1d2",
                       fontSize: "12px",
                       textTransform: "uppercase" as const,
                     }}
@@ -709,11 +709,11 @@ export default function DashboardHome() {
             <tbody>
               {recentLeaves.map((leave) => (
                 <tr key={leave.id}>
-                  <td style={{ padding: "10px 12px", color: "#333", fontWeight: "500" }}>{leave.employee?.fullName ?? "-"}</td>
-                  <td style={{ padding: "10px 12px", color: "#555" }}>{leave.site?.name ?? "-"}</td>
-                  <td style={{ padding: "10px 12px", color: "#333", fontWeight: "500" }}>{leave.leaveType}</td>
-                  <td style={{ padding: "10px 12px", color: "#555" }}>{formatDate(leave.startDate)}</td>
-                  <td style={{ padding: "10px 12px", color: "#555" }}>{formatDate(leave.endDate)}</td>
+                  <td style={{ padding: "10px 12px", color: "#1d2751", fontWeight: "500" }}>{leave.employee?.fullName ?? "-"}</td>
+                  <td style={{ padding: "10px 12px", color: "#6f6a63" }}>{leave.site?.name ?? "-"}</td>
+                  <td style={{ padding: "10px 12px", color: "#1d2751", fontWeight: "500" }}>{leave.leaveType}</td>
+                  <td style={{ padding: "10px 12px", color: "#6f6a63" }}>{formatDate(leave.startDate)}</td>
+                  <td style={{ padding: "10px 12px", color: "#6f6a63" }}>{formatDate(leave.endDate)}</td>
                   <td style={{ padding: "10px 12px" }}>
                     <StatusBadge status={leave.status} />
                   </td>
@@ -734,11 +734,11 @@ function QuickAction({ href, label, color }: { href: string; label: string; colo
       style={{
         backgroundColor: color,
         color: "white",
-        padding: "9px 18px",
-        borderRadius: "8px",
+        padding: "10px 18px",
+        borderRadius: "10px",
         textDecoration: "none",
         fontSize: "13px",
-        fontWeight: "500",
+        fontWeight: "600",
         display: "inline-block",
       }}
     >
@@ -752,16 +752,16 @@ function StatCard({ label, value, color }: { label: string; value: number; color
     <div
       style={{
         backgroundColor: "white",
-        borderRadius: "8px",
-        border: "1px solid #e0e0e0",
-        padding: "16px",
+        borderRadius: "12px",
+        border: "1px solid #dcc8b6",
+        padding: "18px",
         textAlign: "center",
         borderTop: `3px solid ${color}`,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        boxShadow: "0 8px 22px rgba(5,41,118,0.05)",
       }}
     >
       <div style={{ fontSize: "26px", fontWeight: "700", color }}>{value}</div>
-      <div style={{ fontSize: "12px", color: "#666", marginTop: "3px" }}>{label}</div>
+      <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "3px" }}>{label}</div>
     </div>
   );
 }
@@ -772,12 +772,12 @@ function MetricChip({ label, value, color }: { label: string; value: string; col
       style={{
         backgroundColor: "white",
         border: `1px solid ${color}30`,
-        borderRadius: "10px",
-        padding: "10px 14px",
+        borderRadius: "12px",
+        padding: "11px 14px",
         minWidth: "140px",
       }}
     >
-      <div style={{ fontSize: "11px", color: "#777", marginBottom: "4px" }}>{label}</div>
+      <div style={{ fontSize: "11px", color: "#6f6a63", marginBottom: "4px" }}>{label}</div>
       <div style={{ fontSize: "20px", fontWeight: 700, color }}>{value}</div>
     </div>
   );
@@ -850,31 +850,31 @@ function calculatePresencePercentage(
 const siteTableHeaderStyle: React.CSSProperties = {
   padding: "10px 12px",
   textAlign: "left",
-  color: "#555",
+  color: "#6f6a63",
   fontWeight: 600,
-  borderBottom: "2px solid #e0e0e0",
+  borderBottom: "2px solid #dcc8b6",
   whiteSpace: "nowrap",
   fontSize: "13px",
 };
 
 const siteTableCellStyle: React.CSSProperties = {
   padding: "10px 12px",
-  color: "#333",
+  color: "#1d2751",
 };
 
 const reportLabelStyle: React.CSSProperties = {
   display: "block",
   fontSize: "12px",
-  color: "#666",
+  color: "#6f6a63",
   marginBottom: "5px",
 };
 
 const reportInputStyle: React.CSSProperties = {
   width: "100%",
-  border: "1px solid #d9d9d9",
-  borderRadius: "7px",
-  padding: "9px 10px",
+  border: "1px solid #dcc8b6",
+  borderRadius: "10px",
+  padding: "10px 11px",
   fontSize: "13px",
-  color: "#333",
+  color: "#1d2751",
   backgroundColor: "white",
 };

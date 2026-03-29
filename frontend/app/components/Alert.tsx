@@ -6,9 +6,9 @@ interface AlertProps {
 }
 
 const styles: Record<string, { color: string; bg: string; border: string }> = {
-  success: { color: "#155724", bg: "#d4edda", border: "#c3e6cb" },
+  success: { color: "#0a9d76", bg: "#daf7ea", border: "#b7e8d3" },
   error: { color: "#721c24", bg: "#f8d7da", border: "#f5c6cb" },
-  info: { color: "#0c5460", bg: "#d1ecf1", border: "#bee5eb" },
+  info: { color: "#103576", bg: "#e7efff", border: "#bfd0ff" },
 };
 
 export function Alert({ type, message }: AlertProps) {
@@ -16,13 +16,14 @@ export function Alert({ type, message }: AlertProps) {
   return (
     <div
       style={{
-        padding: "10px 14px",
-        borderRadius: "6px",
+        padding: "12px 15px",
+        borderRadius: "10px",
         border: `1px solid ${s.border}`,
         backgroundColor: s.bg,
         color: s.color,
         fontSize: "14px",
-        marginBottom: "16px",
+        marginBottom: "18px",
+        boxShadow: "0 8px 20px rgba(5,41,118,0.04)",
       }}
     >
       {message}

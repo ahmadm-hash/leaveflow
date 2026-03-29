@@ -59,6 +59,10 @@ type LeaveListRow = Prisma.LeaveRequestGetPayload<{
 }>;
 
 const hydrateLeaveRows = async (rows: LeaveListRow[]) => {
+  if (rows.length === 0) {
+    return [];
+  }
+
   const employeeIds = Array.from(new Set(rows.map((row) => row.employeeId)));
   const siteIds = Array.from(new Set(rows.map((row) => row.siteId)));
   const departmentIds = Array.from(new Set(rows.map((row) => row.departmentId)));
@@ -261,6 +265,7 @@ export const leaveController = {
 
       res.json({ leaveRequests });
     } catch (error) {
+      console.error("getMyLeaveRequests failed", error);
       res.status(500).json({ message: "Failed to fetch leave requests", error });
     }
   },

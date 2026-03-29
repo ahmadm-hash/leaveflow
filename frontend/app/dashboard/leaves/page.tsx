@@ -14,12 +14,30 @@ export default function LeavesPage() {
   const [error, setError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
 
+  const fetchLeavesWithRetry = async (attempts = 6): Promise<LeaveRequestItem[]> => {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        const data = await leaveService.getMyLeaveRequests();
+        return data.leaveRequests ?? [];
+      } catch (err) {
+        lastError = err;
+        if (attempt < attempts) {
+          await new Promise((resolve) => setTimeout(resolve, Math.min(250 * attempt * attempt, 1800)));
+        }
+      }
+    }
+
+    throw lastError;
+  };
+
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await leaveService.getMyLeaveRequests();
-      setLeaves(data.leaveRequests ?? []);
+      const leaveRequests = await fetchLeavesWithRetry();
+      setLeaves(leaveRequests);
     } catch {
       setError("Failed to load leave requests");
     } finally {
