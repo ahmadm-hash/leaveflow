@@ -38,6 +38,77 @@ const leaveInclude = {
   },
 } satisfies Prisma.LeaveRequestInclude;
 
+const leaveListSelect = {
+  id: true,
+  startDate: true,
+  endDate: true,
+  leaveType: true,
+  status: true,
+  statusBeforeCancellation: true,
+  reason: true,
+  documentUrl: true,
+  createdAt: true,
+  updatedAt: true,
+  employeeId: true,
+  siteId: true,
+  departmentId: true,
+} satisfies Prisma.LeaveRequestSelect;
+
+type LeaveListRow = Prisma.LeaveRequestGetPayload<{
+  select: typeof leaveListSelect;
+}>;
+
+const hydrateLeaveRows = async (rows: LeaveListRow[]) => {
+  const employeeIds = Array.from(new Set(rows.map((row) => row.employeeId)));
+  const siteIds = Array.from(new Set(rows.map((row) => row.siteId)));
+  const departmentIds = Array.from(new Set(rows.map((row) => row.departmentId)));
+  const leaveRequestIds = rows.map((row) => row.id);
+
+  const [employees, sites, departments, reviews] = await Promise.all([
+    prisma.user.findMany({
+      where: { id: { in: employeeIds } },
+      select: { id: true, fullName: true, username: true, role: true },
+    }),
+    prisma.site.findMany({
+      where: { id: { in: siteIds } },
+      select: { id: true, name: true },
+    }),
+    prisma.department.findMany({
+      where: { id: { in: departmentIds } },
+      select: { id: true, name: true },
+    }),
+    prisma.leaveReview.findMany({
+      where: { leaveRequestId: { in: leaveRequestIds } },
+      select: { id: true, comment: true, reviewedAt: true, role: true, leaveRequestId: true },
+      orderBy: { reviewedAt: "desc" },
+    }),
+  ]);
+
+  const employeeById = new Map(employees.map((employee) => [employee.id, employee]));
+  const siteById = new Map(sites.map((site) => [site.id, site]));
+  const departmentById = new Map(departments.map((department) => [department.id, department]));
+  const reviewsByLeaveRequestId = new Map<string, { id: string; comment: string | null; reviewedAt: Date; role: string }[]>();
+
+  for (const review of reviews) {
+    const current = reviewsByLeaveRequestId.get(review.leaveRequestId) || [];
+    current.push({
+      id: review.id,
+      comment: review.comment,
+      reviewedAt: review.reviewedAt,
+      role: review.role,
+    });
+    reviewsByLeaveRequestId.set(review.leaveRequestId, current);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    employee: employeeById.get(row.employeeId) || null,
+    site: siteById.get(row.siteId) || null,
+    department: departmentById.get(row.departmentId) || null,
+    leaveReview: reviewsByLeaveRequestId.get(row.id) || [],
+  }));
+};
+
 export const leaveController = {
   createLeaveRequest: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -180,11 +251,13 @@ export const leaveController = {
         return;
       }
 
-      const leaveRequests = await prisma.leaveRequest.findMany({
+      const leaveRows = await prisma.leaveRequest.findMany({
         where: { employeeId: req.user.userId },
         orderBy: { createdAt: "desc" },
-        include: leaveInclude,
+        select: leaveListSelect,
       });
+
+      const leaveRequests = await hydrateLeaveRows(leaveRows);
 
       res.json({ leaveRequests });
     } catch (error) {
@@ -296,11 +369,13 @@ export const leaveController = {
         };
       }
 
-      const leaveRequests = await prisma.leaveRequest.findMany({
+      const leaveRows = await prisma.leaveRequest.findMany({
         where: whereClause,
         orderBy: { createdAt: "desc" },
-        include: leaveInclude,
+        select: leaveListSelect,
       });
+
+      const leaveRequests = await hydrateLeaveRows(leaveRows);
 
       res.json({ leaveRequests });
     } catch (error) {
@@ -327,11 +402,13 @@ export const leaveController = {
         whereClause = { siteId: { in: supervisedSiteIds } };
       }
 
-      const leaveRequests = await prisma.leaveRequest.findMany({
+      const leaveRows = await prisma.leaveRequest.findMany({
         where: whereClause,
         orderBy: { createdAt: "desc" },
-        include: leaveInclude,
+        select: leaveListSelect,
       });
+
+      const leaveRequests = await hydrateLeaveRows(leaveRows);
 
       res.json({ leaveRequests });
     } catch (error) {
