@@ -26,8 +26,7 @@ export default function DashboardHome() {
   const [reportEmployeeId, setReportEmployeeId] = useState("");
 
   const actsAsDepartmentHead = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead;
-  const canViewPresence =
-    user?.role === "SUPERVISOR" || actsAsDepartmentHead || user?.role === "ADMIN";
+  const canViewPresence = user?.role === "SUPERVISOR" || actsAsDepartmentHead || user?.role === "ADMIN";
   const canSubmitLeave = user?.role === "EMPLOYEE" || user?.role === "SUPERVISOR";
   const canExportReports = actsAsDepartmentHead || user?.role === "ADMIN";
 
@@ -37,10 +36,14 @@ export default function DashboardHome() {
     const load = async () => {
       const retry = async <T,>(fn: () => Promise<T>, attempts = 6): Promise<T> => {
         let lastErr: unknown;
-        for (let i = 1; i <= attempts; i++) {
-          try { return await fn(); } catch (e) {
+        for (let i = 1; i <= attempts; i += 1) {
+          try {
+            return await fn();
+          } catch (e) {
             lastErr = e;
-            if (i < attempts) await new Promise((r) => setTimeout(r, Math.min(250 * i * i, 2000)));
+            if (i < attempts) {
+              await new Promise((resolve) => setTimeout(resolve, Math.min(250 * i * i, 2000)));
+            }
           }
         }
         throw lastErr;
@@ -67,6 +70,7 @@ export default function DashboardHome() {
         if (managerPromise) {
           const managerData = await managerPromise;
           if (!isMounted || !managerData) return;
+
           setManagedLeaves(managerData[0].leaveRequests ?? []);
           setManagedEmployees(
             (managerData[1].users ?? []).filter(
@@ -76,9 +80,7 @@ export default function DashboardHome() {
         }
       } catch {
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -93,9 +95,7 @@ export default function DashboardHome() {
     user?.role === "SUPERVISOR" || user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
 
   const weeklyPresencePercentage = useMemo(() => {
-    if (!canViewPresence || managedEmployees.length === 0) {
-      return null;
-    }
+    if (!canViewPresence || managedEmployees.length === 0) return null;
 
     const now = new Date();
     const weekStart = new Date(now);
@@ -110,9 +110,7 @@ export default function DashboardHome() {
   }, [canViewPresence, managedEmployees, managedLeaves]);
 
   const monthlyPresencePercentage = useMemo(() => {
-    if (!canViewPresence || managedEmployees.length === 0) {
-      return null;
-    }
+    if (!canViewPresence || managedEmployees.length === 0) return null;
 
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -182,7 +180,6 @@ export default function DashboardHome() {
     const todayStr = new Date().toISOString().slice(0, 10);
     const approvedStatuses = new Set(["APPROVED_BY_SUPERVISOR", "APPROVED_BY_DEPARTMENT_HEAD"]);
 
-    // Build set of employeeId who are on approved leave today
     const onLeaveToday = new Set<string>();
     for (const leave of managedLeaves) {
       if (!approvedStatuses.has(leave.status) || !leave.employee?.id) continue;
@@ -193,7 +190,6 @@ export default function DashboardHome() {
       }
     }
 
-    // Group employees by site
     const siteMap = new Map<string, { siteName: string; present: ManagedUser[]; absent: ManagedUser[] }>();
     for (const employee of managedEmployees) {
       if (!employee.site?.id) continue;
@@ -202,11 +198,8 @@ export default function DashboardHome() {
         siteMap.set(siteId, { siteName: employee.site.name, present: [], absent: [] });
       }
       const bucket = siteMap.get(siteId)!;
-      if (onLeaveToday.has(employee.id)) {
-        bucket.absent.push(employee);
-      } else {
-        bucket.present.push(employee);
-      }
+      if (onLeaveToday.has(employee.id)) bucket.absent.push(employee);
+      else bucket.present.push(employee);
     }
 
     return Array.from(siteMap.entries())
@@ -221,6 +214,7 @@ export default function DashboardHome() {
         siteMap.set(employee.site.id, employee.site.name);
       }
     }
+
     return Array.from(siteMap.entries())
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -237,13 +231,10 @@ export default function DashboardHome() {
   useEffect(() => {
     if (!reportEmployeeId) return;
     const stillVisible = reportEmployees.some((employee) => employee.id === reportEmployeeId);
-    if (!stillVisible) {
-      setReportEmployeeId("");
-    }
+    if (!stillVisible) setReportEmployeeId("");
   }, [reportEmployeeId, reportEmployees]);
 
   const dashboardLeaves = canSubmitLeave ? leaves : managedLeaves;
-
   const roleColor = ROLE_COLORS[user?.role ?? "EMPLOYEE"] ?? theme.colors.navy900;
 
   const stats = {
@@ -328,46 +319,80 @@ export default function DashboardHome() {
   };
 
   return (
-    <div>
+    <div style={{ display: "grid", gap: "18px" }}>
       <Toaster position="top-right" />
+
       <div
         style={{
-          background: `linear-gradient(135deg, ${roleColor}18 0%, #ffffff 48%, #f4eee9 100%)`,
-          border: `1px solid ${roleColor}30`,
-          borderRadius: "12px",
+          background: `linear-gradient(125deg, ${roleColor}18 0%, #ffffff 44%, #f4eee9 100%)`,
+          border: `1px solid ${roleColor}36`,
+          borderRadius: "18px",
           padding: "24px",
-          marginBottom: "24px",
+          boxShadow: "0 16px 30px rgba(5,41,118,0.09)",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "16px",
         }}
       >
-        <h1 style={{ margin: "0 0 4px 0", fontSize: "22px", color: "#052976" }}>
-          Welcome back, {user?.fullName?.split(" ")[0]}!
-        </h1>
-        <p style={{ margin: "0 0 16px 0", color: "#6f6a63", fontSize: "14px" }}>
-          {user?.role}
-          {user?.delegatedDepartmentHead ? " · Delegated Department Head" : ""}
-          {user?.site ? ` · ${user.site.name}` : ""}
-        </p>
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          {canSubmitLeave && user?.annualLeaveBalance !== undefined && (
-            <MetricChip label="Annual Leave Left" value={`${user.annualLeaveBalance}`} color="#20cc76" />
-          )}
-          {weeklyPresencePercentage !== null && (
-            <MetricChip label="Weekly Presence" value={`${weeklyPresencePercentage}%`} color="#4cc4ff" />
-          )}
-          {monthlyPresencePercentage !== null && (
-            <MetricChip label="Monthly Presence" value={`${monthlyPresencePercentage}%`} color="#2633ff" />
-          )}
-          {actsAsDepartmentHead && (
-            <MetricChip label="Delegated Authority" value="Enabled" color="#bc9470" />
-          )}
+        <div>
+          <h1 style={{ margin: "0 0 6px 0", fontSize: "30px", color: "#052976", fontWeight: 800 }}>
+            Executive Dashboard
+          </h1>
+          <p style={{ margin: "0 0 8px 0", color: "#1d2751", fontSize: "15px", fontWeight: 700 }}>
+            Welcome back, {user?.fullName?.split(" ")[0]}
+          </p>
+          <p style={{ margin: 0, color: "#6f6a63", fontSize: "13px" }}>
+            {user?.role}
+            {user?.delegatedDepartmentHead ? " · Delegated Department Head" : ""}
+            {user?.site ? ` · ${user.site.name}` : ""}
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginTop: "16px" }}>
+            {canSubmitLeave && user?.annualLeaveBalance !== undefined && (
+              <MetricChip label="Annual Leave" value={`${user.annualLeaveBalance}`} color="#20cc76" />
+            )}
+            {weeklyPresencePercentage !== null && (
+              <MetricChip label="Weekly Presence" value={`${weeklyPresencePercentage}%`} color="#4cc4ff" />
+            )}
+            {monthlyPresencePercentage !== null && (
+              <MetricChip label="Monthly Presence" value={`${monthlyPresencePercentage}%`} color="#2633ff" />
+            )}
+            {(actsAsDepartmentHead || user?.role === "ADMIN") && (
+              <MetricChip label="Authority" value="Executive" color="#bc9470" />
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            borderRadius: "16px",
+            padding: "16px",
+            color: "white",
+            background: "linear-gradient(155deg, rgba(5,41,118,0.95) 0%, rgba(16,53,118,0.9) 100%)",
+            display: "grid",
+            alignContent: "space-between",
+            minHeight: "162px",
+          }}
+        >
+          <div style={{ fontSize: "12px", opacity: 0.88 }}>Operational Date</div>
+          <div style={{ fontSize: "24px", fontWeight: 800 }}>
+            {new Date().toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
+          </div>
+          <div style={{ fontSize: "12px", opacity: 0.92 }}>
+            {loading ? "Syncing live data..." : "All services responding"}
+          </div>
         </div>
       </div>
 
-      <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontSize: "15px", color: "#6f6a63", margin: "0 0 12px 0", fontWeight: "600" }}>
-          Quick Actions
+      <div className="surface-card" style={{ padding: "16px" }}>
+        <h2 style={{ fontSize: "15px", color: "#6f6a63", margin: "0 0 12px 0", fontWeight: "700" }}>
+          Quick Access
         </h2>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "10px" }}>
           {canSubmitLeave ? (
             <QuickAction href="/dashboard/leaves/new" label="+ New Leave Request" color="#052976" />
           ) : (
@@ -383,181 +408,101 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
         <StatCard label="Total Requests" value={stats.total} color="#103576" />
         <StatCard label="Pending" value={stats.pending} color="#bc9470" />
         <StatCard label="Approved" value={stats.approved} color="#20cc76" />
         <StatCard label="Rejected" value={stats.rejected} color="#dc3545" />
       </div>
 
-      {(actsAsDepartmentHead || user?.role === "ADMIN") && sitePresenceRows.length > 0 && (
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "14px",
-            border: "1px solid #dcc8b6",
-            padding: "22px",
-            boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
-            marginBottom: "24px",
-          }}
-        >
-          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
-            Presence By Site
-          </h2>
-          <div style={{ overflowX: "auto" }}>
-            <table className="brand-table">
-              <thead>
-                <tr style={{ backgroundColor: "#fff8f0" }}>
-                  {[
-                    "Site",
-                    "Employees",
-                    "Weekly Presence",
-                    "Monthly Presence",
-                  ].map((header) => (
-                    <th key={header} style={siteTableHeaderStyle}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sitePresenceRows.map((row) => (
-                  <tr key={row.siteId} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td style={siteTableCellStyle}>{row.siteName}</td>
-                    <td style={siteTableCellStyle}>{row.employees}</td>
-                    <td style={siteTableCellStyle}>{row.weekly}%</td>
-                    <td style={siteTableCellStyle}>{row.monthly}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {(actsAsDepartmentHead || user?.role === "ADMIN") && todayPresenceRows.length > 0 && (
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "14px",
-            border: "1px solid #dcc8b6",
-            padding: "22px",
-            boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
-            marginBottom: "24px",
-          }}
-        >
-          <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
-            Today&apos;s Attendance By Site
-          </h2>
-          <p style={{ margin: "0 0 14px 0", fontSize: "12px", color: "#8c7a69" }}>
-            {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            {todayPresenceRows.map((row) => (
-              <div key={row.siteId}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#1d2751" }}>🏗️ {row.siteName}</span>
-                  <span style={{
-                    backgroundColor: "#daf7ea",
-                    color: "#0a9d76",
-                    borderRadius: "999px",
-                    padding: "3px 10px",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                  }}>
-                    ✅ {row.present.length} Present
-                  </span>
-                  {row.absent.length > 0 && (
-                    <span style={{
-                      backgroundColor: "#f8d7da",
-                      color: "#721c24",
-                      borderRadius: "999px",
-                      padding: "3px 10px",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                    }}>
-                      🏖️ {row.absent.length} On Leave
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  {row.present.map((emp) => (
-                    <div key={emp.id} style={{
-                      backgroundColor: "#f2fbf6",
-                      border: "1px solid #b7e8d3",
-                      borderRadius: "10px",
-                      padding: "7px 12px",
-                      fontSize: "13px",
-                      color: "#0a9d76",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}>
-                      <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#20cc76", display: "inline-block" }} />
-                      {emp.fullName}
-                    </div>
-                  ))}
-                  {row.absent.map((emp) => (
-                    <div key={emp.id} style={{
-                      backgroundColor: "#fff5f5",
-                      border: "1px solid #f5c2c7",
-                      borderRadius: "10px",
-                      padding: "7px 12px",
-                      fontSize: "13px",
-                      color: "#842029",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}>
-                      <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#dc3545", display: "inline-block" }} />
-                      {emp.fullName}
-                    </div>
-                  ))}
-                </div>
+      {(actsAsDepartmentHead || user?.role === "ADMIN") && (sitePresenceRows.length > 0 || todayPresenceRows.length > 0) && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "14px" }}>
+          {sitePresenceRows.length > 0 && (
+            <div className="surface-card" style={{ padding: "20px" }}>
+              <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
+                Presence By Site
+              </h2>
+              <div style={{ overflowX: "auto" }}>
+                <table className="brand-table">
+                  <thead>
+                    <tr>
+                      {["Site", "Employees", "Weekly Presence", "Monthly Presence"].map((header) => (
+                        <th key={header} style={siteTableHeaderStyle}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sitePresenceRows.map((row) => (
+                      <tr key={row.siteId}>
+                        <td style={siteTableCellStyle}>{row.siteName}</td>
+                        <td style={siteTableCellStyle}>{row.employees}</td>
+                        <td style={siteTableCellStyle}>{row.weekly}%</td>
+                        <td style={siteTableCellStyle}>{row.monthly}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {todayPresenceRows.length > 0 && (
+            <div className="surface-card" style={{ padding: "20px" }}>
+              <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
+                Today&apos;s Attendance By Site
+              </h2>
+              <p style={{ margin: "0 0 14px 0", fontSize: "12px", color: "#8c7a69" }}>
+                {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px", maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
+                {todayPresenceRows.map((row) => (
+                  <div key={row.siteId}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#1d2751" }}>🏗️ {row.siteName}</span>
+                      <span style={pillSuccessStyle}>✅ {row.present.length} Present</span>
+                      {row.absent.length > 0 && (
+                        <span style={pillDangerStyle}>🏖️ {row.absent.length} On Leave</span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {row.present.map((emp) => (
+                        <div key={emp.id} style={employeePresentChipStyle}>
+                          <span style={presentDotStyle} />
+                          {emp.fullName}
+                        </div>
+                      ))}
+                      {row.absent.map((emp) => (
+                        <div key={emp.id} style={employeeAbsentChipStyle}>
+                          <span style={absentDotStyle} />
+                          {emp.fullName}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {canExportReports && (
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "14px",
-            border: "1px solid #dcc8b6",
-            padding: "22px",
-            boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
-            marginBottom: "24px",
-          }}
-        >
+        <div className="surface-card" style={{ padding: "20px" }}>
           <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
             Excel Report
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(140px, 1fr))", gap: "12px", marginBottom: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "12px" }}>
             <div>
               <label style={reportLabelStyle}>From Date</label>
-              <input
-                type="date"
-                value={reportStartDate}
-                onChange={(event) => setReportStartDate(event.target.value)}
-                style={reportInputStyle}
-              />
+              <input type="date" value={reportStartDate} onChange={(event) => setReportStartDate(event.target.value)} style={reportInputStyle} />
             </div>
             <div>
               <label style={reportLabelStyle}>To Date</label>
-              <input
-                type="date"
-                value={reportEndDate}
-                onChange={(event) => setReportEndDate(event.target.value)}
-                style={reportInputStyle}
-              />
+              <input type="date" value={reportEndDate} onChange={(event) => setReportEndDate(event.target.value)} style={reportInputStyle} />
             </div>
             <div>
               <label style={reportLabelStyle}>Site</label>
-              <select
-                value={reportSiteId}
-                onChange={(event) => setReportSiteId(event.target.value)}
-                style={reportInputStyle}
-              >
+              <select value={reportSiteId} onChange={(event) => setReportSiteId(event.target.value)} style={reportInputStyle}>
                 <option value="">All Sites</option>
                 {reportSites.map((site) => (
                   <option key={site.id} value={site.id}>
@@ -568,11 +513,7 @@ export default function DashboardHome() {
             </div>
             <div>
               <label style={reportLabelStyle}>Employee</label>
-              <select
-                value={reportEmployeeId}
-                onChange={(event) => setReportEmployeeId(event.target.value)}
-                style={reportInputStyle}
-              >
+              <select value={reportEmployeeId} onChange={(event) => setReportEmployeeId(event.target.value)} style={reportInputStyle}>
                 <option value="">All Employees</option>
                 {reportEmployees.map((employee) => (
                   <option key={employee.id} value={employee.id}>
@@ -584,6 +525,7 @@ export default function DashboardHome() {
           </div>
           <button
             type="button"
+            className="brand-btn brand-btn-primary hover-lift"
             onClick={handleExportExcel}
             disabled={exportingReport}
             style={{
@@ -603,7 +545,7 @@ export default function DashboardHome() {
         </div>
       )}
 
-      <div style={{ display: "grid", gap: "24px", marginBottom: "24px" }}>
+      <div style={{ display: "grid", gap: "20px" }}>
         {canSubmitLeave && (
           <LeaveCalendar
             title="My Interactive Calendar"
@@ -623,15 +565,7 @@ export default function DashboardHome() {
         )}
       </div>
 
-      <div
-        style={{
-          backgroundColor: "white",
-          borderRadius: "14px",
-          border: "1px solid #dcc8b6",
-          padding: "22px",
-          boxShadow: "0 10px 24px rgba(5,41,118,0.06)",
-        }}
-      >
+      <div className="surface-card" style={{ padding: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h2 style={{ margin: 0, fontSize: "16px", color: "#052976", fontWeight: "700" }}>
             {canSubmitLeave ? "Recent Leave Requests" : "Recent Team Leave Requests"}
@@ -650,33 +584,11 @@ export default function DashboardHome() {
               {canSubmitLeave ? "No leave requests yet." : "No team leave requests found."}
             </div>
             {canSubmitLeave ? (
-              <Link
-                href="/dashboard/leaves/new"
-                className="brand-btn brand-btn-primary hover-lift"
-                style={{
-                  backgroundColor: "#052976",
-                  color: "white",
-                  padding: "9px 20px",
-                  borderRadius: "10px",
-                  textDecoration: "none",
-                  fontSize: "14px",
-                }}
-              >
+              <Link href="/dashboard/leaves/new" className="brand-btn brand-btn-primary hover-lift" style={emptyStateActionStyle}>
                 Submit your first request
               </Link>
             ) : (
-              <Link
-                href="/dashboard/manage"
-                className="brand-btn brand-btn-primary hover-lift"
-                style={{
-                  backgroundColor: "#052976",
-                  color: "white",
-                  padding: "9px 20px",
-                  borderRadius: "10px",
-                  textDecoration: "none",
-                  fontSize: "14px",
-                }}
-              >
+              <Link href="/dashboard/manage" className="brand-btn brand-btn-primary hover-lift" style={emptyStateActionStyle}>
                 Open review queue
               </Link>
             )}
@@ -732,12 +644,15 @@ function QuickAction({ href, label, color }: { href: string; label: string; colo
       style={{
         backgroundColor: color,
         color: "white",
-        padding: "10px 18px",
+        padding: "10px 14px",
         borderRadius: "10px",
         textDecoration: "none",
         fontSize: "13px",
-        fontWeight: "600",
-        display: "inline-block",
+        fontWeight: "700",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "44px",
       }}
     >
       {label}
@@ -748,6 +663,7 @@ function QuickAction({ href, label, color }: { href: string; label: string; colo
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div
+      className="hover-lift"
       style={{
         backgroundColor: "white",
         borderRadius: "12px",
@@ -758,7 +674,7 @@ function StatCard({ label, value, color }: { label: string; value: number; color
         boxShadow: "0 8px 22px rgba(5,41,118,0.05)",
       }}
     >
-      <div style={{ fontSize: "26px", fontWeight: "700", color }}>{value}</div>
+      <div style={{ fontSize: "26px", fontWeight: "800", color }}>{value}</div>
       <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "3px" }}>{label}</div>
     </div>
   );
@@ -767,16 +683,17 @@ function StatCard({ label, value, color }: { label: string; value: number; color
 function MetricChip({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div
+      className="hover-lift"
       style={{
         backgroundColor: "white",
         border: `1px solid ${color}30`,
         borderRadius: "12px",
-        padding: "11px 14px",
-        minWidth: "140px",
+        padding: "10px 12px",
+        minWidth: "120px",
       }}
     >
-      <div style={{ fontSize: "11px", color: "#6f6a63", marginBottom: "4px" }}>{label}</div>
-      <div style={{ fontSize: "20px", fontWeight: 700, color }}>{value}</div>
+      <div style={{ fontSize: "11px", color: "#6f6a63", marginBottom: "3px" }}>{label}</div>
+      <div style={{ fontSize: "19px", fontWeight: 800, color }}>{value}</div>
     </div>
   );
 }
@@ -802,15 +719,10 @@ function calculatePresencePercentage(
   periodStart: Date,
   periodEnd: Date
 ) {
-  const totalDays = Math.max(
-    0,
-    Math.floor((periodEnd.getTime() - periodStart.getTime()) / 86400000) + 1
-  );
+  const totalDays = Math.max(0, Math.floor((periodEnd.getTime() - periodStart.getTime()) / 86400000) + 1);
   const totalEmployeeDays = employees.length * totalDays;
 
-  if (totalEmployeeDays === 0) {
-    return 0;
-  }
+  if (totalEmployeeDays === 0) return 0;
 
   const employeeIds = new Set(employees.map((employee) => employee.id));
   const approvedStatuses = new Set(["APPROVED_BY_SUPERVISOR", "APPROVED_BY_DEPARTMENT_HEAD"]);
@@ -826,18 +738,12 @@ function calculatePresencePercentage(
     const effectiveStart = new Date(Math.max(leaveStart.getTime(), periodStart.getTime()));
     const effectiveEnd = new Date(Math.min(leaveEnd.getTime(), periodEnd.getTime()));
 
-    if (effectiveEnd < effectiveStart) {
-      continue;
-    }
+    if (effectiveEnd < effectiveStart) continue;
 
     effectiveStart.setHours(0, 0, 0, 0);
     effectiveEnd.setHours(0, 0, 0, 0);
 
-    for (
-      const current = new Date(effectiveStart);
-      current <= effectiveEnd;
-      current.setDate(current.getDate() + 1)
-    ) {
+    for (const current = new Date(effectiveStart); current <= effectiveEnd; current.setDate(current.getDate() + 1)) {
       leaveDays.add(`${leave.employee.id}:${current.toISOString().slice(0, 10)}`);
     }
   }
@@ -875,4 +781,71 @@ const reportInputStyle: React.CSSProperties = {
   fontSize: "13px",
   color: "#1d2751",
   backgroundColor: "white",
+};
+
+const emptyStateActionStyle: React.CSSProperties = {
+  backgroundColor: "#052976",
+  color: "white",
+  padding: "9px 20px",
+  borderRadius: "10px",
+  textDecoration: "none",
+  fontSize: "14px",
+};
+
+const pillSuccessStyle: React.CSSProperties = {
+  backgroundColor: "#daf7ea",
+  color: "#0a9d76",
+  borderRadius: "999px",
+  padding: "3px 10px",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+
+const pillDangerStyle: React.CSSProperties = {
+  backgroundColor: "#f8d7da",
+  color: "#721c24",
+  borderRadius: "999px",
+  padding: "3px 10px",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+
+const employeePresentChipStyle: React.CSSProperties = {
+  backgroundColor: "#f2fbf6",
+  border: "1px solid #b7e8d3",
+  borderRadius: "10px",
+  padding: "7px 12px",
+  fontSize: "13px",
+  color: "#0a9d76",
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+};
+
+const employeeAbsentChipStyle: React.CSSProperties = {
+  backgroundColor: "#fff5f5",
+  border: "1px solid #f5c2c7",
+  borderRadius: "10px",
+  padding: "7px 12px",
+  fontSize: "13px",
+  color: "#842029",
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+};
+
+const presentDotStyle: React.CSSProperties = {
+  width: "8px",
+  height: "8px",
+  borderRadius: "50%",
+  backgroundColor: "#20cc76",
+  display: "inline-block",
+};
+
+const absentDotStyle: React.CSSProperties = {
+  width: "8px",
+  height: "8px",
+  borderRadius: "50%",
+  backgroundColor: "#dc3545",
+  display: "inline-block",
 };
