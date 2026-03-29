@@ -51,33 +51,53 @@ export default function DashboardHome() {
 
       try {
         const personalPromise = retry(() => leaveService.getMyLeaveRequests());
-        const managerPromise = !canViewPresence
-          ? Promise.resolve(null)
-          : actsAsDepartmentHead || user?.role === "ADMIN"
-            ? Promise.all([
-                retry(() => leaveService.getAllLeaveRequests()),
-                retry(() => authService.getAllUsers()),
-              ])
-            : Promise.all([
-                retry(() => leaveService.getAllLeaveRequests()),
-                retry(() => authService.getSiteEmployees()),
-              ]);
+
+        if (canViewPresence) {
+          const managerLeavesPromise = retry(() => leaveService.getAllLeaveRequests());
+          const managerUsersPromise = actsAsDepartmentHead || user?.role === "ADMIN"
+            ? retry(() => authService.getAllUsers())
+            : retry(() => authService.getSiteEmployees());
+
+          const [personalResult, managerLeavesResult, managerUsersResult] = await Promise.allSettled([
+            personalPromise,
+            managerLeavesPromise,
+            managerUsersPromise,
+          ]);
+
+          if (!isMounted) return;
+
+          if (personalResult.status === "fulfilled") {
+            setLeaves(personalResult.value.leaveRequests ?? []);
+          } else {
+            setLeaves([]);
+          }
+
+          if (managerLeavesResult.status === "fulfilled") {
+            setManagedLeaves(managerLeavesResult.value.leaveRequests ?? []);
+          } else {
+            setManagedLeaves([]);
+          }
+
+          if (managerUsersResult.status === "fulfilled") {
+            setManagedEmployees(
+              (managerUsersResult.value.users ?? []).filter(
+                (managedUser) => managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && !!managedUser.site
+              )
+            );
+          } else {
+            setManagedEmployees([]);
+          }
+
+          if (managerLeavesResult.status === "rejected" || managerUsersResult.status === "rejected") {
+            toast.error("Some dashboard sections could not be loaded. Data is shown where available.");
+          }
+
+          return;
+        }
 
         const personal = await personalPromise;
         if (!isMounted) return;
         setLeaves(personal.leaveRequests ?? []);
-
-        if (managerPromise) {
-          const managerData = await managerPromise;
-          if (!isMounted || !managerData) return;
-
-          setManagedLeaves(managerData[0].leaveRequests ?? []);
-          setManagedEmployees(
-            (managerData[1].users ?? []).filter(
-              (managedUser) => managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && !!managedUser.site
-            )
-          );
-        }
       } catch {
       } finally {
         if (isMounted) setLoading(false);
