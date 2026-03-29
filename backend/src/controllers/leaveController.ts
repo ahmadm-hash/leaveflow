@@ -63,29 +63,45 @@ const hydrateLeaveRows = async (rows: LeaveListRow[]) => {
     return [];
   }
 
-  const employeeIds = Array.from(new Set(rows.map((row) => row.employeeId)));
-  const siteIds = Array.from(new Set(rows.map((row) => row.siteId)));
-  const departmentIds = Array.from(new Set(rows.map((row) => row.departmentId)));
-  const leaveRequestIds = rows.map((row) => row.id);
+  const employeeIds = Array.from(
+    new Set(rows.map((row) => row.employeeId).filter((value): value is string => !!value))
+  );
+  const siteIds = Array.from(
+    new Set(rows.map((row) => row.siteId).filter((value): value is string => !!value))
+  );
+  const departmentIds = Array.from(
+    new Set(rows.map((row) => row.departmentId).filter((value): value is string => !!value))
+  );
+  const leaveRequestIds = rows
+    .map((row) => row.id)
+    .filter((value): value is string => !!value);
 
   const [employees, sites, departments, reviews] = await Promise.all([
-    prisma.user.findMany({
-      where: { id: { in: employeeIds } },
-      select: { id: true, fullName: true, username: true, role: true },
-    }),
-    prisma.site.findMany({
-      where: { id: { in: siteIds } },
-      select: { id: true, name: true },
-    }),
-    prisma.department.findMany({
-      where: { id: { in: departmentIds } },
-      select: { id: true, name: true },
-    }),
-    prisma.leaveReview.findMany({
-      where: { leaveRequestId: { in: leaveRequestIds } },
-      select: { id: true, comment: true, reviewedAt: true, role: true, leaveRequestId: true },
-      orderBy: { reviewedAt: "desc" },
-    }),
+    employeeIds.length > 0
+      ? prisma.user.findMany({
+          where: { id: { in: employeeIds } },
+          select: { id: true, fullName: true, username: true, role: true },
+        })
+      : Promise.resolve([]),
+    siteIds.length > 0
+      ? prisma.site.findMany({
+          where: { id: { in: siteIds } },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve([]),
+    departmentIds.length > 0
+      ? prisma.department.findMany({
+          where: { id: { in: departmentIds } },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve([]),
+    leaveRequestIds.length > 0
+      ? prisma.leaveReview.findMany({
+          where: { leaveRequestId: { in: leaveRequestIds } },
+          select: { id: true, comment: true, reviewedAt: true, role: true, leaveRequestId: true },
+          orderBy: { reviewedAt: "desc" },
+        })
+      : Promise.resolve([]),
   ]);
 
   const employeeById = new Map(employees.map((employee) => [employee.id, employee]));

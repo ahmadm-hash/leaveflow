@@ -90,6 +90,13 @@ const hydrateUserRows = async (rows: UserScalarRow[]) => {
   }));
 };
 
+const fallbackHydratedUsers = (rows: UserScalarRow[]) =>
+  rows.map((row) => ({
+    ...row,
+    site: null,
+    supervisedSites: [] as { id: string; name: string; location: string }[],
+  }));
+
 export const userController = {
   getProfile: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -142,7 +149,15 @@ export const userController = {
         select: userScalarSelect,
         orderBy: { createdAt: "desc" },
       });
-      const users = await hydrateUserRows(rows);
+      let users: Awaited<ReturnType<typeof hydrateUserRows>>;
+
+      try {
+        users = await hydrateUserRows(rows);
+      } catch (hydrateError) {
+        console.error("[getAllUsers] hydrate fallback:", hydrateError);
+        users = fallbackHydratedUsers(rows);
+      }
+
       res.json({ users });
     } catch (error) {
       console.error("[getAllUsers] error:", error);
@@ -172,7 +187,15 @@ export const userController = {
         select: userScalarSelect,
         orderBy: { fullName: "asc" },
       });
-      const users = await hydrateUserRows(rows);
+
+      let users: Awaited<ReturnType<typeof hydrateUserRows>>;
+      try {
+        users = await hydrateUserRows(rows);
+      } catch (hydrateError) {
+        console.error("[getUsersBySite] hydrate fallback:", hydrateError);
+        users = fallbackHydratedUsers(rows);
+      }
+
       res.json({ users });
     } catch (error) {
       console.error("[getUsersBySite] error:", error);
