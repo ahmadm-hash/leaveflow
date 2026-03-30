@@ -7,6 +7,7 @@ import leaveRoutes from "./routes/leaveRoutes";
 import departmentRoutes from "./routes/departmentRoutes";
 import siteRoutes from "./routes/siteRoutes";
 import { ensureDepartmentHeadUser } from "./utils/ensureDepartmentHeadUser";
+import { bootstrapSiteSupervisors } from "./utils/bootstrapSiteSupervisors";
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 const startServer = async () => {
+  await bootstrapSiteSupervisors();
   await ensureDepartmentHeadUser();
 
   app.listen(PORT, () => {
