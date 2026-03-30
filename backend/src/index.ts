@@ -64,8 +64,17 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 const startServer = async () => {
-  await bootstrapSiteSupervisors();
-  await ensureDepartmentHeadUser();
+  try {
+    await bootstrapSiteSupervisors();
+  } catch (error) {
+    console.warn("Site supervisor bootstrap skipped:", error);
+  }
+
+  try {
+    await ensureDepartmentHeadUser();
+  } catch (error) {
+    console.warn("Department head bootstrap skipped:", error);
+  }
 
   app.listen(PORT, () => {
     console.log(`🚀 LeaveFlow Backend running on port ${PORT}`);
