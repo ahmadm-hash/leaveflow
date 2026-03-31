@@ -462,17 +462,6 @@ const secondaryBtnStyle: React.CSSProperties = {
   fontSize: "14px",
 };
 
-const thStyle: React.CSSProperties = {
-  padding: "10px 12px",
-  textAlign: "left",
-  color: "#6f6a63",
-  fontWeight: "600",
-  borderBottom: "2px solid #dcc8b6",
-  whiteSpace: "nowrap",
-};
-
-const tdStyle: React.CSSProperties = { padding: "12px", color: "#1d2751", verticalAlign: "top" };
-
 const roleBadgeStyle = (role: string): React.CSSProperties => ({
   padding: "3px 10px",
   borderRadius: "12px",
