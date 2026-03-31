@@ -247,93 +247,176 @@ export default function UsersPage() {
       )}
 
       {tab === "list" && (
-        <Card>
+        <div>
           {loading ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#999" }}>Loading...</div>
+            <Card>
+              <div style={{ textAlign: "center", padding: "60px 40px", color: "#999" }}>
+                <div style={{ fontSize: "16px", fontWeight: "500" }}>Loading users...</div>
+              </div>
+            </Card>
           ) : users.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>No users found.</div>
+            <Card>
+              <div style={{ textAlign: "center", padding: "60px 40px", color: "#999" }}>
+                <div style={{ fontSize: "16px" }}>📭 No users found.</div>
+              </div>
+            </Card>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table className="brand-table">
-                <thead>
-                  <tr style={{ backgroundColor: "#fff8f0" }}>
-                    {["Name", "Role", "Primary Site", "Status", "Actions"].map((header) => (
-                      <th key={header} style={thStyle}>{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((managedUser) => {
-                    return (
-                      <tr key={managedUser.id} style={{ borderBottom: "1px solid #f0f0f0", opacity: managedUser.isActive === false ? 0.6 : 1 }}>
-                          <td style={tdStyle}>
-                            <div style={{ fontWeight: 600 }}>{managedUser.fullName}</div>
-                            <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
-                              @{managedUser.username} · {managedUser.email}
-                            </div>
-                          </td>
-                          <td style={tdStyle}>
-                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                              <span style={roleBadgeStyle(managedUser.role)}>{managedUser.role}</span>
-                              {managedUser.delegatedDepartmentHead && (
-                                <span style={miniBadgeStyle("#bc9470")}>Delegated Head</span>
-                              )}
-                              {managedUser.canDownloadSignedLeavePdf && (
-                                <span style={miniBadgeStyle("#2d6a4f")}>PDF Access</span>
-                              )}
-                            </div>
-                          </td>
-                          <td style={tdStyle}>{managedUser.site?.name ?? "-"}</td>
-                          <td style={tdStyle}>
-                            <span style={statusPillStyle(managedUser.isActive !== false)}>
-                              {managedUser.isActive !== false ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td style={tdStyle}>
-                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                              {canManageSupervisors && managedUser.id !== user?.id && (managedUser.role === "EMPLOYEE" || managedUser.role === "SUPERVISOR") && (
-                                <button className="brand-btn brand-btn-outline" onClick={() => toggleSupervisor(managedUser)} style={outlineButtonStyle("#2633ff")}>
-                                  {managedUser.role === "SUPERVISOR" ? "Remove Supervisor" : "Make Supervisor"}
-                                </button>
-                              )}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: "20px" }}>
+              {users.map((managedUser) => {
+                const isInactive = managedUser.isActive === false;
+                return (
+                  <div
+                    key={managedUser.id}
+                    style={{
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #e8dccf",
+                      borderRadius: "12px",
+                      padding: "20px",
+                      opacity: isInactive ? 0.65 : 1,
+                      transition: "all 0.3s ease",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                      cursor: "default",
+                      position: "relative",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "16px",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isInactive) {
+                        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 6px 12px rgba(0,0,0,0.1)";
+                        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+                      (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                    }}
+                  >
+                    {/* Header Section */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: "16px", color: "#052976" }}>
+                          {managedUser.fullName}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#888", marginTop: "4px" }}>
+                          @{managedUser.username}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#aaa", marginTop: "2px", wordBreak: "break-all" }}>
+                          {managedUser.email}
+                        </div>
+                      </div>
+                      <span style={statusPillStyle(managedUser.isActive !== false)}>
+                        {managedUser.isActive !== false ? "Active" : "Inactive"}
+                      </span>
+                    </div>
 
-                              {canManageSupervisors && managedUser.role === "SUPERVISOR" && managedUser.id !== user?.id && (
-                                <button className="brand-btn brand-btn-outline" onClick={() => toggleDelegation(managedUser)} style={outlineButtonStyle("#bc9470")}>
-                                  {managedUser.delegatedDepartmentHead ? "Remove Delegation" : "Delegate Powers"}
-                                </button>
-                              )}
+                    {/* Role & Badges Section */}
+                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                      <span style={roleBadgeStyle(managedUser.role)}>{managedUser.role}</span>
+                      {managedUser.delegatedDepartmentHead && (
+                        <span style={miniBadgeStyle("#bc9470")}>👑 Delegated Head</span>
+                      )}
+                      {managedUser.canDownloadSignedLeavePdf && (
+                        <span style={miniBadgeStyle("#2d6a4f")}>📄 PDF Access</span>
+                      )}
+                    </div>
 
-                              {canResetEmployeePasswords && managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && (
-                                <button className="brand-btn brand-btn-outline" onClick={() => handleResetPassword(managedUser)} style={outlineButtonStyle("#198754")}>
-                                  Reset Password
-                                </button>
-                              )}
+                    {/* Site & Info Section */}
+                    {managedUser.site && (
+                      <div style={{ padding: "10px 12px", backgroundColor: "#f9f6f1", borderRadius: "8px", fontSize: "13px" }}>
+                        <div style={{ color: "#888", marginBottom: "2px" }}>Primary Site</div>
+                        <div style={{ fontWeight: "600", color: "#052976" }}>{managedUser.site.name}</div>
+                      </div>
+                    )}
 
-                              {canGrantSignedPdfAccess && managedUser.isActive !== false && managedUser.id !== user?.id && (
-                                <button
-                                  className="brand-btn brand-btn-outline"
-                                  onClick={() => toggleSignedPdfAccess(managedUser)}
-                                  style={outlineButtonStyle("#2d6a4f")}
-                                >
-                                  {managedUser.canDownloadSignedLeavePdf ? "Revoke PDF Access" : "Grant PDF Access"}
-                                </button>
-                              )}
+                    {/* Divider */}
+                    <div style={{ height: "1px", backgroundColor: "#e8dccf" }}></div>
 
-                              {managedUser.isActive !== false && managedUser.id !== user?.id && canManageSupervisors && (
-                                <button className="brand-btn brand-btn-outline" onClick={() => handleDeactivate(managedUser.id)} disabled={deactivating === managedUser.id} style={outlineButtonStyle("#dc3545")}>
-                                  {deactivating === managedUser.id ? "..." : "Deactivate"}
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    {/* Actions Section */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {canManageSupervisors && managedUser.id !== user?.id && (managedUser.role === "EMPLOYEE" || managedUser.role === "SUPERVISOR") && (
+                        <button
+                          className="brand-btn brand-btn-outline"
+                          onClick={() => toggleSupervisor(managedUser)}
+                          style={{
+                            ...outlineButtonStyle("#2633ff"),
+                            width: "100%",
+                            padding: "8px 12px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          {managedUser.role === "SUPERVISOR" ? "🚫 Remove Supervisor" : "⭐ Make Supervisor"}
+                        </button>
+                      )}
+
+                      {canManageSupervisors && managedUser.role === "SUPERVISOR" && managedUser.id !== user?.id && (
+                        <button
+                          className="brand-btn brand-btn-outline"
+                          onClick={() => toggleDelegation(managedUser)}
+                          style={{
+                            ...outlineButtonStyle("#bc9470"),
+                            width: "100%",
+                            padding: "8px 12px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          {managedUser.delegatedDepartmentHead ? "🔄 Remove Delegation" : "👑 Delegate Powers"}
+                        </button>
+                      )}
+
+                      {canResetEmployeePasswords && managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && (
+                        <button
+                          className="brand-btn brand-btn-outline"
+                          onClick={() => handleResetPassword(managedUser)}
+                          style={{
+                            ...outlineButtonStyle("#198754"),
+                            width: "100%",
+                            padding: "8px 12px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          🔐 Reset Password
+                        </button>
+                      )}
+
+                      {canGrantSignedPdfAccess && managedUser.isActive !== false && managedUser.id !== user?.id && (
+                        <button
+                          className="brand-btn brand-btn-outline"
+                          onClick={() => toggleSignedPdfAccess(managedUser)}
+                          style={{
+                            ...outlineButtonStyle("#2d6a4f"),
+                            width: "100%",
+                            padding: "8px 12px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          {managedUser.canDownloadSignedLeavePdf ? "📄 Revoke PDF Access" : "📄 Grant PDF Access"}
+                        </button>
+                      )}
+
+                      {managedUser.isActive !== false && managedUser.id !== user?.id && canManageSupervisors && (
+                        <button
+                          className="brand-btn brand-btn-outline"
+                          onClick={() => handleDeactivate(managedUser.id)}
+                          disabled={deactivating === managedUser.id}
+                          style={{
+                            ...outlineButtonStyle("#dc3545"),
+                            width: "100%",
+                            padding: "8px 12px",
+                            fontSize: "13px",
+                            opacity: deactivating === managedUser.id ? 0.6 : 1,
+                          }}
+                        >
+                          {deactivating === managedUser.id ? "⏳ Processing..." : "🚫 Deactivate"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
-        </Card>
+        </div>
       )}
     </div>
   );
