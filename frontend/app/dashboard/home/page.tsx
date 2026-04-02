@@ -9,7 +9,6 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { LeaveCalendar } from "../../components/LeaveCalendar";
 import { Toaster, toast } from "sonner";
 import { ROLE_COLORS, theme } from "../../lib/theme";
-import styles from "./page.module.css";
 
 export default function DashboardHome() {
   const user = useAuthStore((state) => state.user);
@@ -275,14 +274,6 @@ export default function DashboardHome() {
     rejected: dashboardLeaves.filter((leave) => leave.status === "REJECTED").length,
   };
 
-  const approvalRate = stats.total > 0 ? Math.round((stats.approved / stats.total) * 100) : 0;
-  const interviewRate = stats.total > 0 ? Math.round((stats.pending / stats.total) * 100) : 0;
-  const projectCount = canViewPresence ? sitePresenceRows.length : Math.max(stats.total, 1);
-  const peopleCount = canViewPresence ? managedEmployees.length : 1;
-  const sessionMinutes = Math.max(20, Math.round((weeklyPresencePercentage ?? 55) * 1.4));
-  const timerMinutes = String(Math.floor(sessionMinutes / 60)).padStart(2, "0");
-  const timerSeconds = String(sessionMinutes % 60).padStart(2, "0");
-
   const recentLeaves = dashboardLeaves.slice(0, 5);
 
   const handleExportExcel = async () => {
@@ -360,100 +351,6 @@ export default function DashboardHome() {
   return (
     <div style={{ display: "grid", gap: "18px" }}>
       <Toaster position="top-right" />
-
-      <section className={styles.shell}>
-        <div className={styles.shellTopBar}>
-          <div className={styles.brandPill}>LeaveFlow</div>
-          <div className={styles.menuRow}>
-            <span className={`${styles.menuItem} ${styles.menuItemActive}`}>Dashboard</span>
-            <span className={styles.menuItem}>People</span>
-            <span className={styles.menuItem}>Leaves</span>
-            <span className={styles.menuItem}>Sites</span>
-            <span className={styles.menuItem}>Calendar</span>
-          </div>
-          <div className={styles.userMini}>{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
-        </div>
-
-        <div className={styles.heroHeader}>
-          <div>
-            <h2 className={styles.heroTitle}>Welcome in, {user?.fullName?.split(" ")[0] ?? "Team"}</h2>
-            <p className={styles.heroSubline}>
-              Role: {user?.role}
-              {user?.site ? ` · ${user.site.name}` : ""}
-            </p>
-          </div>
-          <div className={styles.kpiRow}>
-            <div className={styles.kpiBox}>
-              <strong>{peopleCount}</strong>
-              <span>People</span>
-            </div>
-            <div className={styles.kpiBox}>
-              <strong>{stats.pending}</strong>
-              <span>Pending</span>
-            </div>
-            <div className={styles.kpiBox}>
-              <strong>{projectCount}</strong>
-              <span>Sites/Projects</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.progressStrip}>
-          <ProgressItem label="Interviews" value={`${interviewRate}%`} width={interviewRate} tone="dark" />
-          <ProgressItem label="Hired" value={`${approvalRate}%`} width={approvalRate} tone="gold" />
-          <ProgressItem label="Output" value={`${monthlyPresencePercentage ?? 0}%`} width={monthlyPresencePercentage ?? 0} tone="light" />
-        </div>
-
-        <div className={styles.mainGrid}>
-          <div className={styles.profileCard}>
-            <div className={styles.avatarWrap}>
-              <div className={styles.avatarCircle}>{user?.fullName?.[0]?.toUpperCase() ?? "U"}</div>
-              <div>
-                <h3>{user?.fullName ?? "User"}</h3>
-                <p>{user?.role}</p>
-              </div>
-            </div>
-            <div className={styles.salaryPill}>Balance {user?.annualLeaveBalance ?? 0}</div>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.cardHead}><h4>Progress</h4><span>{approvalRate}%</span></div>
-            <div className={styles.bigNumber}>{(stats.total * 1.1).toFixed(1)}h</div>
-            <p className={styles.muted}>Work time this week</p>
-            <div className={styles.miniBars}>
-              {[stats.total, stats.pending, stats.approved, stats.rejected, approvalRate / 10, interviewRate / 10].map((value, idx) => (
-                <span key={idx} style={{ height: `${18 + Math.max(8, Math.min(64, Math.round(value * 5)))}px` }} />
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.timerCard}>
-            <div className={styles.cardHead}><h4>Time tracker</h4><span>Today</span></div>
-            <div className={styles.timerDial}>
-              <div>
-                <strong>{timerMinutes}:{timerSeconds}</strong>
-                <small>Work Time</small>
-              </div>
-            </div>
-            <div className={styles.timerActions}>
-              <button type="button">Play</button>
-              <button type="button">Pause</button>
-            </div>
-          </div>
-
-          <div className={styles.tasksCard}>
-            <div className={styles.cardHead}><h4>Onboarding</h4><span>{Math.min(100, approvalRate)}%</span></div>
-            <div className={styles.onboardMeter}>
-              <span style={{ width: `${Math.min(100, approvalRate)}%` }} />
-            </div>
-            <ul>
-              <li><span>Account review</span><b>{stats.pending > 0 ? "In progress" : "Done"}</b></li>
-              <li><span>Leave policy check</span><b>{stats.total > 0 ? "Done" : "Waiting"}</b></li>
-              <li><span>Manager confirmation</span><b>{stats.approved > 0 ? "Done" : "Open"}</b></li>
-            </ul>
-          </div>
-        </div>
-      </section>
 
       <div
         style={{
@@ -814,37 +711,6 @@ export default function DashboardHome() {
             </tbody>
           </table>
         )}
-      </div>
-    </div>
-  );
-}
-
-function ProgressItem({
-  label,
-  value,
-  width,
-  tone,
-}: {
-  label: string;
-  value: string;
-  width: number;
-  tone: "dark" | "gold" | "light";
-}) {
-  const toneClass =
-    tone === "dark"
-      ? styles.progressDark
-      : tone === "gold"
-        ? styles.progressGold
-        : styles.progressLight;
-
-  return (
-    <div className={styles.progressItem}>
-      <div className={styles.progressHeader}>
-        <span>{label}</span>
-        <span>{value}</span>
-      </div>
-      <div className={styles.progressTrack}>
-        <div className={`${styles.progressFill} ${toneClass}`} style={{ width: `${Math.max(8, Math.min(100, width))}%` }} />
       </div>
     </div>
   );
