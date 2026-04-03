@@ -475,8 +475,13 @@ export default function DashboardHome() {
       {(actsAsDepartmentHead || user?.role === "ADMIN") && (sitePresenceRows.length > 0 || todayPresenceRows.length > 0) && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "16px" }}>
           {sitePresenceRows.length > 0 && (
-            <div className="glass-panel" style={{ padding: "24px" }}>
-              <h2 className="heading-gradient" style={{ margin: "0 0 16px 0", fontSize: "18px" }}>
+            <div style={{
+              background: "#ffffff",
+              borderRadius: "16px",
+              padding: "24px",
+              boxShadow: "0 4px 15px rgba(5, 41, 118, 0.04)"
+            }}>
+              <h2 style={{ margin: "0 0 20px 0", fontSize: "16px", color: "#0A358A", fontWeight: "800" }}>
                 Presence By Site
               </h2>
               <div style={{ overflowX: "auto" }}>
@@ -504,7 +509,12 @@ export default function DashboardHome() {
           )}
 
           {todayPresenceRows.length > 0 && (
-            <div className="glass-panel" style={{ padding: "24px" }}>
+            <div style={{
+              background: "#ffffff",
+              borderRadius: "16px",
+              padding: "24px",
+              boxShadow: "0 4px 15px rgba(5, 41, 118, 0.04)"
+            }}>
               <div
                 style={{
                   display: "flex",
@@ -516,7 +526,7 @@ export default function DashboardHome() {
                 }}
               >
                 <div>
-                  <h2 className="heading-gradient" style={{ margin: "0 0 6px 0", fontSize: "18px" }}>
+                  <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#0A358A", fontWeight: "800" }}>
                     Today&apos;s Attendance By Site
                   </h2>
                   <p style={{ margin: 0, fontSize: "12px", color: "#8c7a69" }}>
@@ -594,11 +604,16 @@ export default function DashboardHome() {
       )}
 
       {canExportReports && (
-        <div className="surface-card" style={{ padding: "20px" }}>
-          <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
+        <div style={{
+          background: "#ffffff",
+          borderRadius: "16px",
+          padding: "24px",
+          boxShadow: "0 4px 15px rgba(5, 41, 118, 0.04)"
+        }}>
+          <h2 style={{ margin: "0 0 20px 0", fontSize: "16px", color: "#0A358A", fontWeight: "800" }}>
             Excel Report
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "16px" }}>
             <div>
               <label style={reportLabelStyle}>From Date</label>
               <input type="date" value={reportStartDate} onChange={(event) => setReportStartDate(event.target.value)} style={reportInputStyle} />
@@ -632,19 +647,20 @@ export default function DashboardHome() {
           </div>
           <button
             type="button"
-            className="brand-btn brand-btn-primary hover-lift"
+            className="hover-lift"
             onClick={handleExportExcel}
             disabled={exportingReport}
             style={{
-              backgroundColor: "#20cc76",
+              backgroundColor: "#0A358A",
               color: "white",
               border: "none",
               borderRadius: "10px",
-              padding: "11px 16px",
-              fontSize: "13px",
-              fontWeight: 600,
+              padding: "10px 24px",
+              fontSize: "14px",
+              fontWeight: 700,
               cursor: exportingReport ? "not-allowed" : "pointer",
               opacity: exportingReport ? 0.7 : 1,
+              display: "inline-block"
             }}
           >
             {exportingReport ? "Exporting..." : "Export Excel"}
@@ -875,86 +891,103 @@ function calculatePresencePercentage(
 }
 
 const siteTableHeaderStyle: React.CSSProperties = {
-  padding: "10px 12px",
+  padding: "16px 8px 12px",
   textAlign: "left",
-  color: "#6f6a63",
-  fontWeight: 600,
-  borderBottom: "2px solid #dcc8b6",
+  color: "#8B95A5",
+  fontWeight: 700,
+  borderBottom: "1px solid #EBE4DD",
   whiteSpace: "nowrap",
-  fontSize: "13px",
+  fontSize: "12px",
+  letterSpacing: "0.05em",
+  textTransform: "uppercase",
 };
 
 const siteTableCellStyle: React.CSSProperties = {
-  padding: "10px 12px",
+  padding: "16px 8px",
   color: "#1d2751",
+  fontWeight: 600,
+  fontSize: "13px",
+  borderBottom: "1px solid #FAF7F5",
 };
 
 const reportLabelStyle: React.CSSProperties = {
   display: "block",
   fontSize: "12px",
-  color: "#6f6a63",
-  marginBottom: "5px",
+  color: "#8B95A5",
+  marginBottom: "6px",
+  fontWeight: 500,
 };
 
 const reportInputStyle: React.CSSProperties = {
   width: "100%",
-  border: "1px solid #dcc8b6",
-  borderRadius: "10px",
-  padding: "10px 11px",
+  border: "1px solid #E5ECFB",
+  borderRadius: "14px",
+  padding: "10px 14px",
   fontSize: "13px",
   color: "#1d2751",
   backgroundColor: "white",
+  outline: "none",
+  transition: "border-color 0.2s",
 };
 
 const emptyStateActionStyle: React.CSSProperties = {
-  backgroundColor: "#052976",
+  backgroundColor: "#0A358A",
   color: "white",
-  padding: "9px 20px",
-  borderRadius: "10px",
+  padding: "12px 24px",
+  borderRadius: "14px",
   textDecoration: "none",
   fontSize: "14px",
+  fontWeight: 600,
 };
 
 const pillSuccessStyle: React.CSSProperties = {
-  backgroundColor: "#daf7ea",
+  backgroundColor: "#E6F8EF",
   color: "#0a9d76",
-  borderRadius: "999px",
-  padding: "3px 10px",
+  borderRadius: "8px",
+  padding: "4px 10px",
   fontSize: "12px",
   fontWeight: 600,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "4px",
 };
 
 const pillDangerStyle: React.CSSProperties = {
-  backgroundColor: "#f8d7da",
-  color: "#721c24",
-  borderRadius: "999px",
-  padding: "3px 10px",
+  backgroundColor: "#FCE8EA",
+  color: "#D93F4C",
+  borderRadius: "8px",
+  padding: "4px 10px",
   fontSize: "12px",
   fontWeight: 600,
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "4px",
 };
 
 const employeePresentChipStyle: React.CSSProperties = {
-  backgroundColor: "#f2fbf6",
-  border: "1px solid #b7e8d3",
-  borderRadius: "10px",
-  padding: "7px 12px",
+  backgroundColor: "#ffffff",
+  border: "1px solid #B7E8D3",
+  borderRadius: "12px",
+  padding: "6px 14px",
   fontSize: "13px",
   color: "#0a9d76",
   display: "flex",
   alignItems: "center",
-  gap: "6px",
+  gap: "8px",
+  fontWeight: 600,
 };
 
 const employeeAbsentChipStyle: React.CSSProperties = {
-  backgroundColor: "#fff5f5",
-  border: "1px solid #f5c2c7",
-  borderRadius: "10px",
-  padding: "7px 12px",
+  backgroundColor: "#ffffff",
+  border: "1px solid #F5C2C7",
+  borderRadius: "12px",
+  padding: "6px 14px",
   fontSize: "13px",
-  color: "#842029",
+  color: "#D93F4C",
   display: "flex",
   alignItems: "center",
-  gap: "6px",
+  gap: "8px",
+  fontWeight: 600,
 };
 
 const presentDotStyle: React.CSSProperties = {
@@ -969,46 +1002,47 @@ const absentDotStyle: React.CSSProperties = {
   width: "8px",
   height: "8px",
   borderRadius: "50%",
-  backgroundColor: "#dc3545",
+  backgroundColor: "#D93F4C",
   display: "inline-block",
 };
 
 const summaryPillBlueStyle: React.CSSProperties = {
-  background: "#e8f0ff",
-  color: "#103576",
-  borderRadius: "999px",
-  padding: "5px 10px",
+  background: "#E8F0FF",
+  color: "#0A358A",
+  borderRadius: "14px",
+  padding: "4px 12px",
   fontSize: "12px",
   fontWeight: 700,
 };
 
 const summaryPillSuccessStyle: React.CSSProperties = {
-  background: "#daf7ea",
+  background: "#E6F8EF",
   color: "#0a9d76",
-  borderRadius: "999px",
-  padding: "5px 10px",
+  borderRadius: "14px",
+  padding: "4px 12px",
   fontSize: "12px",
   fontWeight: 700,
 };
 
 const summaryPillDangerStyle: React.CSSProperties = {
-  background: "#fce8ea",
-  color: "#842029",
-  borderRadius: "999px",
-  padding: "5px 10px",
+  background: "#FCE8EA",
+  color: "#D93F4C",
+  borderRadius: "14px",
+  padding: "4px 12px",
   fontSize: "12px",
   fontWeight: 700,
 };
 
 const sitePresenceCardStyle: React.CSSProperties = {
-  border: "1px solid #dde8fb",
+  border: "1px solid #E5ECFB",
   borderRadius: "14px",
-  background: "linear-gradient(145deg, #ffffff 0%, #f7faff 100%)",
-  padding: "12px",
+  background: "#ffffff",
+  padding: "16px",
 };
 
 const siteHintTextStyle: React.CSSProperties = {
-  color: "#7f8ab0",
+  color: "#8B95A5",
   fontSize: "12px",
   fontWeight: 500,
+  marginLeft: "8px"
 };

@@ -8,26 +8,28 @@ import { useRouter } from "next/navigation";
 import { authService } from "../lib/authService";
 import { ROLE_COLORS } from "../lib/theme";
 
-function NavItem({ href, label, active }: { href: string; label: string; active: boolean }) {
+function NavItem({ href, label, active, icon }: { href: string; label: string; active: boolean; icon: string }) {
   return (
     <Link
       href={href}
       style={{
-        display: "block",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
         padding: "12px 16px",
         borderRadius: "12px",
-        color: active ? "#052976" : "var(--rc-ink-700)",
-        backgroundColor: active ? "rgba(255, 255, 255, 0.6)" : "transparent",
-        boxShadow: active ? "0 4px 12px rgba(5, 41, 118, 0.05)" : "none",
+        color: active ? "#0A358A" : "#495277",
+        backgroundColor: active ? "#ffffff" : "transparent",
+        boxShadow: active ? "0 4px 15px rgba(5, 41, 118, 0.05)" : "none",
         textDecoration: "none",
-        fontSize: "14px",
+        fontSize: "15px",
         fontWeight: active ? "700" : "500",
-        marginBottom: "6px",
+        marginBottom: "8px",
         transition: "all 0.25s ease",
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)";
+          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
           e.currentTarget.style.transform = "translateX(4px)";
         }
       }}
@@ -38,6 +40,7 @@ function NavItem({ href, label, active }: { href: string; label: string; active:
         }
       }}
     >
+      <span style={{ fontSize: "18px" }}>{icon}</span>
       {label}
     </Link>
   );
@@ -106,121 +109,137 @@ export default function DashboardLayout({
   const canUseUsersPage = user?.role === "SUPERVISOR" || canUseDepartmentHeadTools;
   const canUseSitesPage = canUseDepartmentHeadTools;
 
-  const roleColor = ROLE_COLORS[user?.role ?? "EMPLOYEE"] ?? "#052976";
-
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "transparent" }}>
       {/* Sidebar - Glassmorphic design */}
       <div
-        className="glass-panel"
         style={{
           width: "280px",
           minWidth: "280px",
           margin: "16px 0 16px 16px",
-          border: "1px solid var(--glass-border)",
-          boxShadow: "var(--glass-shadow)",
+          background: "rgba(255, 255, 255, 0.6)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.8)",
+          borderRadius: "24px",
+          boxShadow: "0 10px 40px -10px rgba(5, 41, 118, 0.08)",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden"
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "24px", paddingBottom: "20px", display: "flex", alignItems: "center", gap: "14px" }}>
-          <div className="brand-mark">RJ</div>
-          <Link href="/dashboard/home" className="heading-gradient" style={{ textDecoration: "none", fontSize: "16px", lineHeight: 1.2 }}>
-            RC Jubail<br/>& Yanbu
+        <div style={{ padding: "32px 24px 24px", display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{
+            width: "56px",
+            height: "56px",
+            borderRadius: "18px",
+            background: "linear-gradient(135deg, #3f2b96 0%, #0A358A 100%)",
+            color: "#ffffff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "20px",
+            fontWeight: "800",
+            letterSpacing: "0.05em",
+            boxShadow: "0 8px 20px rgba(10, 53, 138, 0.3)"
+          }}>
+            RJ
+          </div>
+          <Link href="/dashboard/home" style={{ textDecoration: "none" }}>
+             <div style={{ fontSize: "18px", fontWeight: "800", color: "#0A358A", lineHeight: 1.2 }}>
+               RC Jubail<br/>& Yanbu
+             </div>
           </Link>
         </div>
 
-        {/* User card - Floating glass pill */}
-        <div style={{ padding: "0 16px 16px" }}>
+        {/* User card */}
+        <div style={{ padding: "0 20px 24px" }}>
           <div
             style={{
-              padding: "12px",
-              background: "rgba(255,255,255,0.5)",
-              borderRadius: "16px",
-              border: "1px solid rgba(255,255,255,0.6)",
+              padding: "16px",
+              background: "#ffffff",
+              borderRadius: "18px",
               display: "flex",
               alignItems: "center",
-              gap: "12px",
-              boxShadow: "0 4px 12px rgba(5, 41, 118, 0.03)"
+              gap: "14px",
+              boxShadow: "0 4px 15px rgba(5, 41, 118, 0.04)"
             }}
           >
             <div
               style={{
-                width: "42px",
-                height: "42px",
-                borderRadius: "12px",
-                backgroundColor: roleColor,
+                width: "48px",
+                height: "48px",
+                borderRadius: "14px",
+                backgroundColor: "#0A358A",
                 color: "white",
-                fontSize: "18px",
-                fontWeight: "700",
+                fontSize: "20px",
+                fontWeight: "800",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                boxShadow: `0 4px 12px ${roleColor}40`
               }}
             >
-              {user?.fullName?.[0]?.toUpperCase() ?? "?"}
+              {user?.fullName?.[0]?.toUpperCase() ?? "D"}
             </div>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ fontSize: "14px", fontWeight: "700", color: "#1d2751", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {user?.fullName}
+              <div style={{ fontSize: "15px", fontWeight: "700", color: "#0A358A", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: "4px" }}>
+                {user?.fullName || "Department Head"}
               </div>
               <span
                 style={{
-                  fontSize: "11px",
-                  fontWeight: "700",
-                  color: roleColor,
-                  backgroundColor: roleColor + "18",
-                  padding: "2px 8px",
+                  fontSize: "10px",
+                  fontWeight: "800",
+                  color: "#0A358A",
+                  backgroundColor: "#E8F0FF",
+                  padding: "4px 8px",
                   borderRadius: "6px",
-                  display: "inline-block",
-                  marginTop: "3px"
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em"
                 }}
               >
-                {user?.role}
+                {user?.role || "DEPARTMENT_HEAD"}
               </span>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav style={{ padding: "12px 16px", flex: 1, overflowY: "auto" }}>
-          <div style={{ fontSize: "11px", fontWeight: "800", color: "var(--rc-ink-700)", padding: "4px 8px 8px", textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.7 }}>
-            Main Section
+        <nav style={{ padding: "12px 20px", flex: 1, overflowY: "auto" }}>
+          <div style={{ fontSize: "12px", fontWeight: "800", color: "#8B95A5", padding: "8px 8px 12px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            MAIN SECTION
           </div>
-          <NavItem href="/dashboard/home" label="🏠 Dashboard" active={pathname === "/dashboard/home"} />
-          <NavItem href="/dashboard/leaves" label="📋 My Leaves" active={pathname.startsWith("/dashboard/leaves")} />
-          <NavItem href="/dashboard/profile" label="👤 Profile" active={pathname === "/dashboard/profile"} />
+          <NavItem href="/dashboard/home" label="Dashboard" active={pathname === "/dashboard/home"} icon="🏠" />
+          <NavItem href="/dashboard/leaves" label="My Leaves" active={pathname.startsWith("/dashboard/leaves")} icon="📋" />
+          <NavItem href="/dashboard/profile" label="Profile" active={pathname === "/dashboard/profile"} icon="👤" />
 
           {isManager && (
             <>
-              <div style={{ fontSize: "11px", fontWeight: "800", color: "var(--rc-ink-700)", padding: "20px 8px 8px", textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.7 }}>
-                Management
+              <div style={{ fontSize: "12px", fontWeight: "800", color: "#8B95A5", padding: "24px 8px 12px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                MANAGEMENT
               </div>
-              <NavItem href="/dashboard/manage" label="✅ Review Leaves" active={pathname === "/dashboard/manage"} />
+              <NavItem href="/dashboard/manage" label="Review Leaves" active={pathname === "/dashboard/manage"} icon="✅" />
               {canUseUsersPage && (
-                <NavItem href="/dashboard/users" label="👥 Users" active={pathname === "/dashboard/users"} />
+                <NavItem href="/dashboard/users" label="Users" active={pathname === "/dashboard/users"} icon="👥" />
               )}
               {canUseSitesPage && (
-                <NavItem href="/dashboard/sites" label="🏗️ Sites" active={pathname === "/dashboard/sites"} />
+                <NavItem href="/dashboard/sites" label="Sites" active={pathname === "/dashboard/sites"} icon="🏗️" />
               )}
             </>
           )}
         </nav>
 
         {/* Logout */}
-        <div style={{ padding: "16px" }}>
+        <div style={{ padding: "20px" }}>
           <button
             onClick={handleLogout}
             style={{
               width: "100%",
-              backgroundColor: "rgba(255, 255, 255, 0.4)",
-              color: "var(--rc-danger-600)",
-              border: "1px solid rgba(184, 50, 50, 0.2)",
-              padding: "12px",
-              borderRadius: "12px",
+              backgroundColor: "#FFF5F5",
+              color: "#DC3545",
+              border: "1px solid #FFE5E5",
+              padding: "14px",
+              borderRadius: "14px",
               cursor: "pointer",
               fontSize: "14px",
               fontWeight: "700",
@@ -228,10 +247,10 @@ export default function DashboardLayout({
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(184, 50, 50, 0.1)";
+              e.currentTarget.style.backgroundColor = "#FFE5E5";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.4)";
+              e.currentTarget.style.backgroundColor = "#FFF5F5";
             }}
           >
             Sign Out
@@ -248,3 +267,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+
