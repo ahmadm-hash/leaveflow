@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma";
 
 export const bootstrapSiteSupervisors = async (): Promise<void> => {
   // Create junction table if it was not migrated yet in the target environment.

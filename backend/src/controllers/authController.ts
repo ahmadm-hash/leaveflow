@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { hashPassword, comparePassword } from "../utils/password";
 import { generateToken } from "../utils/jwt";
-
-const prisma = new PrismaClient();
 
 export const authController = {
   // Public self-registration is disabled. Users must be created by authorized staff.

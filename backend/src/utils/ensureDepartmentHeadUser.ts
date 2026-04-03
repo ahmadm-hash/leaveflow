@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { hashPassword } from "./password";
-
-const prisma = new PrismaClient();
 
 const defaultDepartmentHead = {
   email: process.env.DEPARTMENT_HEAD_EMAIL || "department.head@leaveflow.local",

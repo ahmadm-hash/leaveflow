@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { hashPassword } from "../utils/password";
-
-const prisma = new PrismaClient();
 const VALID_ROLES = ["EMPLOYEE", "SUPERVISOR", "DEPARTMENT_HEAD", "ADMIN"] as const;
 
 const getSupervisedSiteIds = async (supervisorId: string): Promise<string[]> => {

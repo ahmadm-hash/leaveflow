@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
-
-const prisma = new PrismaClient();
 
 const VALID_LEAVE_TYPES = ["ANNUAL", "SICK", "UNPAID"];
 
