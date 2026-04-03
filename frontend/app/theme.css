@@ -1,90 +1,151 @@
-.surface-card {
-  border: 1px solid var(--rc-sand-300);
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 10px 24px rgba(5, 41, 118, 0.06);
+/* Glassmorphic Components */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
 }
 
+.glass-panel-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--glass-hover-shadow);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.surface-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(5, 41, 118, 0.03);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+.surface-card:hover {
+  box-shadow: 0 10px 30px rgba(5, 41, 118, 0.06);
+}
+
+/* Typography styles */
+.heading-gradient {
+  background: linear-gradient(135deg, var(--rc-navy-900) 0%, var(--rc-blue-500) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+/* Tables */
 .brand-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 14px;
 }
 
 .brand-table thead tr {
-  background: #fff8f0;
+  background: transparent;
 }
 
 .brand-table th {
-  padding: 11px 12px;
+  padding: 14px 16px;
   text-align: left;
-  color: #6f6a63;
-  font-weight: 600;
-  border-bottom: 2px solid var(--rc-sand-300);
+  color: var(--rc-ink-700);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid rgba(220, 200, 182, 0.4);
   white-space: nowrap;
 }
 
 .brand-table td {
-  padding: 12px;
-  color: #1d2751;
-  border-bottom: 1px solid #ebe1d2;
-  vertical-align: top;
+  padding: 16px;
+  color: var(--rc-ink-900);
+  border-bottom: 1px solid rgba(220, 200, 182, 0.2);
+  vertical-align: middle;
+  font-weight: 500;
 }
 
 .brand-table tbody tr {
-  transition: background-color 0.18s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .brand-table tbody tr:hover {
-  background: #fffdf9;
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.002);
 }
 
+.brand-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Buttons */
 .brand-btn {
   border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
+  border-radius: 12px;
+  padding: 12px 24px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  letter-spacing: 0.02em;
 }
 
 .brand-btn-primary {
-  background: #052976;
+  background: linear-gradient(135deg, var(--rc-navy-900) 0%, var(--rc-blue-700) 100%);
   color: #fff;
+  box-shadow: 0 4px 14px rgba(5, 41, 118, 0.2);
 }
 
 .brand-btn-primary:hover {
-  background: #103576;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #0A358A 0%, var(--rc-blue-500) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(5, 41, 118, 0.3);
+}
+
+.brand-btn-primary:active {
+  transform: translateY(0);
 }
 
 .brand-btn-soft {
-  background: #fff8f0;
-  color: #1d2751;
-  border: 1px solid var(--rc-sand-300);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--rc-navy-900);
+  border: 1px solid rgba(220, 200, 182, 0.6);
+  backdrop-filter: blur(8px);
 }
 
 .brand-btn-soft:hover {
-  background: #fdf1e1;
+  background: #ffffff;
+  border-color: var(--rc-sand-300);
+  box-shadow: 0 4px 12px rgba(5, 41, 118, 0.08);
+  transform: translateY(-1px);
 }
 
 .brand-btn-outline {
-  background: #fff;
-  border: 1px solid currentColor;
+  background: transparent;
+  border: 2px solid var(--rc-navy-900);
+  color: var(--rc-navy-900);
 }
 
 .brand-btn-outline:hover {
+  background: rgba(5, 41, 118, 0.05);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(5, 41, 118, 0.12);
 }
 
+/* Animations */
 .hover-lift {
-  transition: all 0.18s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .hover-lift:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(5, 41, 118, 0.1);
+  transform: translateY(-4px);
+  box-shadow: var(--glass-hover-shadow);
 }

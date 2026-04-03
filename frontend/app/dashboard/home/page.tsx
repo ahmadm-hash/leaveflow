@@ -349,84 +349,111 @@ export default function DashboardHome() {
   };
 
   return (
-    <div style={{ display: "grid", gap: "18px" }}>
+    <div style={{ display: "grid", gap: "24px" }}>
       <Toaster position="top-right" />
 
       <div
+        className="glass-panel hover-lift"
         style={{
-          background: `linear-gradient(125deg, ${roleColor}18 0%, #ffffff 44%, #f4eee9 100%)`,
-          border: `1px solid ${roleColor}36`,
-          borderRadius: "18px",
-          padding: "24px",
-          boxShadow: "0 16px 30px rgba(5,41,118,0.09)",
+          background: `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.4) 100%)`,
+          padding: "32px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "16px",
+          gap: "24px",
+          position: "relative",
+          overflow: "hidden"
         }}
       >
-        <div>
-          <h1 style={{ margin: "0 0 6px 0", fontSize: "30px", color: "#052976", fontWeight: 800 }}>
+        {/* Decorative background glow */}
+        <div style={{
+          position: "absolute",
+          top: "-50px",
+          right: "-50px",
+          width: "200px",
+          height: "200px",
+          background: `radial-gradient(circle, ${roleColor}30 0%, transparent 70%)`,
+          borderRadius: "50%",
+          filter: "blur(30px)",
+          zIndex: 0
+        }} />
+
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <h1 className="heading-gradient" style={{ margin: "0 0 8px 0", fontSize: "34px", letterSpacing: "-0.02em" }}>
             Executive Dashboard
           </h1>
-          <p style={{ margin: "0 0 8px 0", color: "#1d2751", fontSize: "15px", fontWeight: 700 }}>
-            Welcome back, {user?.fullName?.split(" ")[0]}
+          <p style={{ margin: "0 0 10px 0", color: "var(--rc-ink-900)", fontSize: "16px", fontWeight: "700" }}>
+            Welcome back, <span style={{ color: roleColor }}>{user?.fullName?.split(" ")[0]}</span>
           </p>
-          <p style={{ margin: 0, color: "#6f6a63", fontSize: "13px" }}>
+          <p style={{ margin: 0, color: "var(--rc-ink-700)", fontSize: "14px", fontWeight: "500" }}>
             {user?.role}
             {user?.delegatedDepartmentHead ? " · Delegated Department Head" : ""}
             {user?.site ? ` · ${user.site.name}` : ""}
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginTop: "16px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginTop: "24px" }}>
             {canSubmitLeave && user?.annualLeaveBalance !== undefined && (
-              <MetricChip label="Annual Leave" value={`${user.annualLeaveBalance}`} color="#20cc76" />
+              <MetricChip label="Annual Leave" value={`${user.annualLeaveBalance}`} color="var(--rc-green-500)" />
             )}
             {weeklyPresencePercentage !== null && (
-              <MetricChip label="Weekly Presence" value={`${weeklyPresencePercentage}%`} color="#4cc4ff" />
+              <MetricChip label="Weekly Presence" value={`${weeklyPresencePercentage}%`} color="var(--rc-sky-500)" />
             )}
             {monthlyPresencePercentage !== null && (
-              <MetricChip label="Monthly Presence" value={`${monthlyPresencePercentage}%`} color="#2633ff" />
+              <MetricChip label="Monthly Presence" value={`${monthlyPresencePercentage}%`} color="var(--rc-blue-500)" />
             )}
             {(actsAsDepartmentHead || user?.role === "ADMIN") && (
-              <MetricChip label="Authority" value="Executive" color="#bc9470" />
+              <MetricChip label="Authority Level" value="Executive" color="var(--rc-bronze-500)" />
             )}
           </div>
         </div>
 
         <div
           style={{
-            borderRadius: "16px",
-            padding: "16px",
+            borderRadius: "20px",
+            padding: "24px",
             color: "white",
-            background: "linear-gradient(155deg, rgba(5,41,118,0.95) 0%, rgba(16,53,118,0.9) 100%)",
+            background: `linear-gradient(155deg, ${roleColor}ee 0%, var(--rc-blue-700) 100%)`,
+            boxShadow: `0 10px 30px ${roleColor}40`,
             display: "grid",
             alignContent: "space-between",
-            minHeight: "162px",
+            minHeight: "180px",
+            position: "relative",
+            zIndex: 1,
+            overflow: "hidden"
           }}
         >
-          <div style={{ fontSize: "12px", opacity: 0.88 }}>Operational Date</div>
-          <div style={{ fontSize: "24px", fontWeight: 800 }}>
-            {new Date().toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
+          {/* Subtle overlay inside dark card */}
+          <div style={{
+            position: "absolute",
+            top: 0, right: 0, bottom: 0, left: 0,
+            background: "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')",
+            opacity: 0.5
+          }} />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <div style={{ fontSize: "13px", opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Operational Date</div>
+            <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "8px" }}>
+              {new Date().toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </div>
           </div>
-          <div style={{ fontSize: "12px", opacity: 0.92 }}>
+          <div style={{ position: "relative", zIndex: 1, fontSize: "14px", opacity: 0.9, display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: loading ? "#ffc107" : "#20cc76", display: "inline-block" }} />
             {loading ? "Syncing live data..." : "All services responding"}
           </div>
         </div>
       </div>
 
-      <div className="surface-card" style={{ padding: "16px" }}>
-        <h2 style={{ fontSize: "15px", color: "#6f6a63", margin: "0 0 12px 0", fontWeight: "700" }}>
-          Quick Access
+      <div className="glass-panel" style={{ padding: "24px" }}>
+        <h2 style={{ fontSize: "16px", color: "var(--rc-ink-700)", margin: "0 0 16px 0", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          Quick Actions
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "10px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "12px" }}>
           {canSubmitLeave ? (
-            <QuickAction href="/dashboard/leaves/new" label="+ New Leave Request" color="#052976" />
+            <QuickAction href="/dashboard/leaves/new" label="+ New Request" color="var(--rc-navy-900)" />
           ) : (
-            <QuickAction href="/dashboard/manage" label="Open Team Review" color="#052976" />
+            <QuickAction href="/dashboard/manage" label="Open Team Review" color="var(--rc-navy-900)" />
           )}
           <QuickAction href="/dashboard/leaves" label={canSubmitLeave ? "View My Leaves" : "View Leave Log"} color="#6c757d" />
           {isManager && <QuickAction href="/dashboard/manage" label="Review Leaves" color="#20cc76" />}
@@ -438,18 +465,18 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
-        <StatCard label="Total Requests" value={stats.total} color="#103576" />
-        <StatCard label="Pending" value={stats.pending} color="#bc9470" />
-        <StatCard label="Approved" value={stats.approved} color="#20cc76" />
-        <StatCard label="Rejected" value={stats.rejected} color="#dc3545" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px" }}>
+        <StatCard label="Total Requests" value={stats.total} color="var(--rc-navy-900)" />
+        <StatCard label="Pending" value={stats.pending} color="var(--rc-bronze-500)" />
+        <StatCard label="Approved" value={stats.approved} color="var(--rc-green-500)" />
+        <StatCard label="Rejected" value={stats.rejected} color="var(--rc-danger-600)" />
       </div>
 
       {(actsAsDepartmentHead || user?.role === "ADMIN") && (sitePresenceRows.length > 0 || todayPresenceRows.length > 0) && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "16px" }}>
           {sitePresenceRows.length > 0 && (
-            <div className="surface-card" style={{ padding: "20px" }}>
-              <h2 style={{ margin: "0 0 14px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
+            <div className="glass-panel" style={{ padding: "24px" }}>
+              <h2 className="heading-gradient" style={{ margin: "0 0 16px 0", fontSize: "18px" }}>
                 Presence By Site
               </h2>
               <div style={{ overflowX: "auto" }}>
@@ -477,19 +504,19 @@ export default function DashboardHome() {
           )}
 
           {todayPresenceRows.length > 0 && (
-            <div className="surface-card" style={{ padding: "20px" }}>
+            <div className="glass-panel" style={{ padding: "24px" }}>
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
                   gap: "12px",
-                  marginBottom: "14px",
+                  marginBottom: "16px",
                   flexWrap: "wrap",
                 }}
               >
                 <div>
-                  <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#052976", fontWeight: "700" }}>
+                  <h2 className="heading-gradient" style={{ margin: "0 0 6px 0", fontSize: "18px" }}>
                     Today&apos;s Attendance By Site
                   </h2>
                   <p style={{ margin: 0, fontSize: "12px", color: "#8c7a69" }}>
@@ -645,9 +672,9 @@ export default function DashboardHome() {
         )}
       </div>
 
-      <div className="surface-card" style={{ padding: "20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <h2 style={{ margin: 0, fontSize: "16px", color: "#052976", fontWeight: "700" }}>
+      <div className="glass-panel" style={{ padding: "24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <h2 className="heading-gradient" style={{ margin: 0, fontSize: "18px" }}>
             {canSubmitLeave ? "Recent Leave Requests" : "Recent Team Leave Requests"}
           </h2>
           <Link href={canSubmitLeave ? "/dashboard/leaves" : "/dashboard/manage"} style={{ color: "#052976", fontSize: "13px", textDecoration: "none" }}>
@@ -720,19 +747,28 @@ function QuickAction({ href, label, color }: { href: string; label: string; colo
   return (
     <Link
       href={href}
-      className="brand-btn hover-lift"
       style={{
-        backgroundColor: color,
+        background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
         color: "white",
-        padding: "10px 14px",
-        borderRadius: "10px",
+        padding: "14px 16px",
+        borderRadius: "14px",
         textDecoration: "none",
-        fontSize: "13px",
+        fontSize: "14px",
         fontWeight: "700",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: "44px",
+        minHeight: "48px",
+        boxShadow: `0 8px 20px ${color}30`,
+        transition: "all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-3px)";
+        e.currentTarget.style.boxShadow = `0 12px 24px ${color}40`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = `0 8px 20px ${color}30`;
       }}
     >
       {label}
@@ -743,19 +779,23 @@ function QuickAction({ href, label, color }: { href: string; label: string; colo
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div
-      className="hover-lift"
+      className="glass-panel-hover"
       style={{
-        backgroundColor: "white",
-        borderRadius: "12px",
-        border: "1px solid #dcc8b6",
-        padding: "18px",
+        background: "rgba(255, 255, 255, 0.8)",
+        backdropFilter: "blur(12px)",
+        borderRadius: "16px",
+        border: "1px solid rgba(255, 255, 255, 0.6)",
+        padding: "20px",
         textAlign: "center",
-        borderTop: `3px solid ${color}`,
-        boxShadow: "0 8px 22px rgba(5,41,118,0.05)",
+        position: "relative",
+        boxShadow: "0 8px 25px rgba(5, 41, 118, 0.04)",
+        overflow: "hidden",
+        transition: "all 0.3s ease"
       }}
     >
-      <div style={{ fontSize: "26px", fontWeight: "800", color }}>{value}</div>
-      <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "3px" }}>{label}</div>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "4px", background: `linear-gradient(90deg, ${color}, ${color}80)` }} />
+      <div style={{ fontSize: "32px", fontWeight: "800", color, textShadow: `0 2px 10px ${color}20` }}>{value}</div>
+      <div style={{ fontSize: "13px", color: "var(--rc-ink-700)", marginTop: "4px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>
     </div>
   );
 }
@@ -763,17 +803,20 @@ function StatCard({ label, value, color }: { label: string; value: number; color
 function MetricChip({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div
-      className="hover-lift"
+      className="glass-panel-hover"
       style={{
-        backgroundColor: "white",
-        border: `1px solid ${color}30`,
-        borderRadius: "12px",
-        padding: "10px 12px",
-        minWidth: "120px",
+        background: "rgba(255, 255, 255, 0.6)",
+        backdropFilter: "blur(8px)",
+        border: `1px solid rgba(255, 255, 255, 0.8)`,
+        borderRadius: "14px",
+        padding: "12px 16px",
+        boxShadow: "0 4px 15px rgba(5, 41, 118, 0.03)",
+        borderLeft: `4px solid ${color}`,
+        flex: "1 1 min-content"
       }}
     >
-      <div style={{ fontSize: "11px", color: "#6f6a63", marginBottom: "3px" }}>{label}</div>
-      <div style={{ fontSize: "19px", fontWeight: 800, color }}>{value}</div>
+      <div style={{ fontSize: "11px", color: "var(--rc-ink-700)", marginBottom: "4px", textTransform: "uppercase", fontWeight: "700", letterSpacing: "0.05em" }}>{label}</div>
+      <div style={{ fontSize: "20px", fontWeight: 800, color, textShadow: `0 2px 10px ${color}20` }}>{value}</div>
     </div>
   );
 }

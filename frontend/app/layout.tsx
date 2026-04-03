@@ -5,6 +5,14 @@ import { initializeApiClient } from "./lib/apiClient";
 import "./globals.css";
 import "./theme.css";
 
+import { Cairo } from "next/font/google";
+
+const cairo = Cairo({ 
+  subsets: ["latin", "arabic"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -16,13 +24,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          padding: 0,
-          fontFamily: "Cairo, Tajawal, Segoe UI, Tahoma, sans-serif",
-        }}
-      >
+      <body className={cairo.className}>
         {children}
       </body>
     </html>

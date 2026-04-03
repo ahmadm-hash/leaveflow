@@ -13,6 +13,11 @@
   --rc-ink-900: #1d2751;
   --rc-ink-700: #495277;
   --rc-danger-600: #b83232;
+
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 10px 40px -10px rgba(5, 41, 118, 0.1);
+  --glass-hover-shadow: 0 16px 45px -10px rgba(5, 41, 118, 0.18);
 }
 
 * {
@@ -27,31 +32,57 @@ body {
 
 body {
   color: var(--rc-ink-900);
-  background:
-    radial-gradient(circle at 12% 16%, rgba(76, 196, 255, 0.18), transparent 34%),
-    radial-gradient(circle at 84% 12%, rgba(129, 66, 255, 0.14), transparent 32%),
-    radial-gradient(circle at 50% 100%, rgba(32, 204, 118, 0.12), transparent 34%),
-    linear-gradient(180deg, #fffdf9 0%, var(--rc-paper-100) 100%);
-  line-height: 1.5;
+  background: 
+    radial-gradient(circle at 0% 0%, rgba(76, 196, 255, 0.1) 0%, transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(129, 66, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(32, 204, 118, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(5, 41, 118, 0.05) 0%, transparent 45%),
+    linear-gradient(135deg, var(--rc-paper-50) 0%, var(--rc-paper-100) 100%);
+  background-attachment: fixed;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 a {
   color: inherit;
+  text-decoration: none;
+}
+
+/* Scrollbar styling for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--rc-sand-300);
+  border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--rc-bronze-500);
 }
 
 .brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--rc-purple-500), var(--rc-navy-900));
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--rc-purple-500) 0%, var(--rc-navy-900) 100%);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  box-shadow: 0 10px 22px rgba(5, 41, 118, 0.22);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  box-shadow: 0 10px 24px rgba(5, 41, 118, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.brand-mark:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 28px rgba(5, 41, 118, 0.35);
 }

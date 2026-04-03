@@ -14,14 +14,28 @@ function NavItem({ href, label, active }: { href: string; label: string; active:
       href={href}
       style={{
         display: "block",
-        padding: "9px 12px",
-        borderRadius: "6px",
-        color: active ? "#052976" : "#4a5676",
-        backgroundColor: active ? "#eef4ff" : "transparent",
+        padding: "12px 16px",
+        borderRadius: "12px",
+        color: active ? "#052976" : "var(--rc-ink-700)",
+        backgroundColor: active ? "rgba(255, 255, 255, 0.6)" : "transparent",
+        boxShadow: active ? "0 4px 12px rgba(5, 41, 118, 0.05)" : "none",
         textDecoration: "none",
         fontSize: "14px",
-        fontWeight: active ? "600" : "400",
-        marginBottom: "2px",
+        fontWeight: active ? "700" : "500",
+        marginBottom: "6px",
+        transition: "all 0.25s ease",
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)";
+          e.currentTarget.style.transform = "translateX(4px)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.transform = "translateX(0)";
+        }
       }}
     >
       {label}
@@ -95,62 +109,74 @@ export default function DashboardLayout({
   const roleColor = ROLE_COLORS[user?.role ?? "EMPLOYEE"] ?? "#052976";
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f4eee9" }}>
-      {/* Sidebar */}
+    <div style={{ display: "flex", minHeight: "100vh", background: "transparent" }}>
+      {/* Sidebar - Glassmorphic design */}
       <div
+        className="glass-panel"
         style={{
-          width: "240px",
-          minWidth: "240px",
-          backgroundColor: "#fffdf9",
-          borderRight: "1px solid #dcc8b6",
-          padding: "0",
-          boxShadow: "2px 0 14px rgba(5, 41, 118, 0.08)",
+          width: "280px",
+          minWidth: "280px",
+          margin: "16px 0 16px 16px",
+          border: "1px solid var(--glass-border)",
+          boxShadow: "var(--glass-shadow)",
           display: "flex",
           flexDirection: "column",
         }}
       >
         {/* Logo */}
-        <div style={{ padding: "18px 16px 14px", borderBottom: "1px solid #ebe1d2" }}>
-          <Link href="/dashboard/home" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
-            <img src="/brand/rcjy-mark.png" alt="RCJY mark" style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-            <span style={{ fontSize: "15px", fontWeight: "700", color: "#052976", lineHeight: 1.2 }}>
-              RC Jubail & Yanbu
-            </span>
+        <div style={{ padding: "24px", paddingBottom: "20px", display: "flex", alignItems: "center", gap: "14px" }}>
+          <div className="brand-mark">RJ</div>
+          <Link href="/dashboard/home" className="heading-gradient" style={{ textDecoration: "none", fontSize: "16px", lineHeight: 1.2 }}>
+            RC Jubail<br/>& Yanbu
           </Link>
         </div>
 
-        {/* User card */}
-        <div style={{ padding: "16px", borderBottom: "1px solid #ebe1d2" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {/* User card - Floating glass pill */}
+        <div style={{ padding: "0 16px 16px" }}>
+          <div
+            style={{
+              padding: "12px",
+              background: "rgba(255,255,255,0.5)",
+              borderRadius: "16px",
+              border: "1px solid rgba(255,255,255,0.6)",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              boxShadow: "0 4px 12px rgba(5, 41, 118, 0.03)"
+            }}
+          >
             <div
               style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "50%",
+                width: "42px",
+                height: "42px",
+                borderRadius: "12px",
                 backgroundColor: roleColor,
                 color: "white",
-                fontSize: "16px",
+                fontSize: "18px",
                 fontWeight: "700",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
+                boxShadow: `0 4px 12px ${roleColor}40`
               }}
             >
               {user?.fullName?.[0]?.toUpperCase() ?? "?"}
             </div>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ fontSize: "13px", fontWeight: "600", color: "#1d2751", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: "#1d2751", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {user?.fullName}
               </div>
               <span
                 style={{
                   fontSize: "11px",
-                  fontWeight: "600",
+                  fontWeight: "700",
                   color: roleColor,
                   backgroundColor: roleColor + "18",
-                  padding: "1px 7px",
-                  borderRadius: "8px",
+                  padding: "2px 8px",
+                  borderRadius: "6px",
+                  display: "inline-block",
+                  marginTop: "3px"
                 }}
               >
                 {user?.role}
@@ -160,9 +186,9 @@ export default function DashboardLayout({
         </div>
 
         {/* Navigation */}
-        <nav style={{ padding: "12px 8px", flex: 1 }}>
-          <div style={{ fontSize: "11px", fontWeight: "600", color: "#8c7a69", padding: "4px 12px 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-            Main
+        <nav style={{ padding: "12px 16px", flex: 1, overflowY: "auto" }}>
+          <div style={{ fontSize: "11px", fontWeight: "800", color: "var(--rc-ink-700)", padding: "4px 8px 8px", textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.7 }}>
+            Main Section
           </div>
           <NavItem href="/dashboard/home" label="🏠 Dashboard" active={pathname === "/dashboard/home"} />
           <NavItem href="/dashboard/leaves" label="📋 My Leaves" active={pathname.startsWith("/dashboard/leaves")} />
@@ -170,7 +196,7 @@ export default function DashboardLayout({
 
           {isManager && (
             <>
-              <div style={{ fontSize: "11px", fontWeight: "600", color: "#8c7a69", padding: "12px 12px 6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+              <div style={{ fontSize: "11px", fontWeight: "800", color: "var(--rc-ink-700)", padding: "20px 8px 8px", textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.7 }}>
                 Management
               </div>
               <NavItem href="/dashboard/manage" label="✅ Review Leaves" active={pathname === "/dashboard/manage"} />
@@ -185,20 +211,27 @@ export default function DashboardLayout({
         </nav>
 
         {/* Logout */}
-        <div style={{ padding: "12px 8px", borderTop: "1px solid #ebe1d2" }}>
+        <div style={{ padding: "16px" }}>
           <button
             onClick={handleLogout}
             style={{
               width: "100%",
-              backgroundColor: "transparent",
-              color: "#9f2f2f",
-              border: "1px solid #c98484",
-              padding: "8px 12px",
-              borderRadius: "6px",
+              backgroundColor: "rgba(255, 255, 255, 0.4)",
+              color: "var(--rc-danger-600)",
+              border: "1px solid rgba(184, 50, 50, 0.2)",
+              padding: "12px",
+              borderRadius: "12px",
               cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: "500",
+              fontSize: "14px",
+              fontWeight: "700",
               textAlign: "center",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(184, 50, 50, 0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.4)";
             }}
           >
             Sign Out
@@ -206,8 +239,12 @@ export default function DashboardLayout({
         </div>
       </div>
 
-      {/* Main Content */}
-      <div style={{ flex: 1, padding: "28px", overflowX: "auto" }}>{children}</div>
+      {/* Main Content Area */}
+      <div style={{ flex: 1, padding: "32px 40px", overflowX: "auto" }}>
+        <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
