@@ -24,7 +24,41 @@
   --calendar-border: rgba(18, 58, 153, 0.18);
   --calendar-divider: rgba(72, 100, 156, 0.25);
   border-color: var(--calendar-border);
+  border-radius: 16px;
+  padding: 16px;
   box-shadow: 0 28px 56px rgba(8, 28, 80, 0.16);
+}
+
+.supervisor .header {
+  margin-bottom: 12px;
+}
+
+.supervisor .title {
+  font-size: 18px;
+}
+
+.supervisor .subtitle {
+  font-size: 12px;
+}
+
+.supervisor .monthLabel {
+  min-width: 150px;
+  font-size: 13px;
+}
+
+.supervisor .navBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.supervisor .stats {
+  margin-bottom: 10px;
+}
+
+.supervisor .statChip {
+  padding: 4px 9px;
+  font-size: 10px;
 }
 
 .header {
@@ -140,6 +174,63 @@
 
 .supervisor .weekday {
   color: #4060a1;
+}
+
+.supervisor .grid {
+  grid-template-columns: repeat(7, minmax(76px, 1fr));
+  gap: 6px;
+  min-width: 570px;
+}
+
+.supervisor .dayCell,
+.supervisor .emptyPad {
+  min-height: 78px;
+}
+
+.supervisor .dayCell {
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.supervisor .dayHeader {
+  margin-bottom: 6px;
+}
+
+.supervisor .dayNumber {
+  font-size: 13px;
+}
+
+.supervisor .eventCount {
+  min-width: 19px;
+  height: 19px;
+  font-size: 10px;
+}
+
+.supervisor .pill,
+.supervisor .moreCount {
+  font-size: 9px;
+}
+
+.supervisor .details {
+  margin-top: 14px;
+  padding-top: 11px;
+}
+
+.supervisor .eventCard {
+  padding: 10px;
+}
+
+.supervisor .eventName {
+  font-size: 13px;
+}
+
+.supervisor .eventMeta {
+  font-size: 11px;
+}
+
+.supervisor .status {
+  padding: 3px 8px;
+  font-size: 10px;
 }
 
 .emptyPad {
@@ -336,5 +427,15 @@
   .grid {
     grid-template-columns: repeat(7, minmax(72px, 1fr));
     min-width: 540px;
+  }
+
+  .supervisor .grid {
+    grid-template-columns: repeat(7, minmax(66px, 1fr));
+    min-width: 500px;
+  }
+
+  .supervisor .dayCell,
+  .supervisor .emptyPad {
+    min-height: 72px;
   }
 }
