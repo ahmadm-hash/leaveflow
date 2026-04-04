@@ -7,6 +7,7 @@ import { Card } from "../../components/Card";
 import { StatusBadge } from "../../components/StatusBadge";
 import { Alert } from "../../components/Alert";
 import { toast, Toaster } from "sonner";
+import { ClipboardList, Plus } from "lucide-react";
 
 export default function LeavesPage() {
   const [leaves, setLeaves] = useState<LeaveRequestItem[]>([]);
@@ -107,14 +108,14 @@ export default function LeavesPage() {
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#999" }}>Loading...</div>
         ) : leaves.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px" }}>
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>📋</div>
-            <div style={{ color: "#6f6a63", fontSize: "15px" }}>No leave requests yet.</div>
+          <div style={{ textAlign: "center", padding: "40px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+            <ClipboardList size={54} color="#a0aec0" strokeWidth={1.5} />
+            <div style={{ color: "#6f6a63", fontSize: "16px", fontWeight: "500", marginTop: "8px" }}>No leave requests yet.</div>
             <Link
               href="/dashboard/leaves/new"
-              style={{ color: "#052976", fontSize: "14px", textDecoration: "none", fontWeight: 600 }}
+              style={{ color: "#0A358A", fontSize: "14px", textDecoration: "none", fontWeight: 700, padding: "8px 16px", background: "#f0f4ff", borderRadius: "8px", marginTop: "12px", display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              Submit your first request →
+              <Plus size={16} /> Create Request
             </Link>
           </div>
         ) : (

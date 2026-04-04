@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "../store/authStore";
 import { useRouter } from "next/navigation";
 import { authService } from "../lib/authService";
+import { LayoutDashboard, CalendarDays, User, CheckSquare, Users, Building2, LogOut } from "lucide-react";
 
-
-function NavItem({ href, label, active, icon }: { href: string; label: string; active: boolean; icon: string }) {
+function NavItem({ href, label, active, icon: Icon }: { href: string; label: string; active: boolean; icon: React.ElementType }) {
   return (
     <Link
       href={href}
@@ -16,31 +16,33 @@ function NavItem({ href, label, active, icon }: { href: string; label: string; a
         display: "flex",
         alignItems: "center",
         gap: "12px",
-        padding: "12px 16px",
-        borderRadius: "12px",
-        color: active ? "#0A358A" : "#495277",
-        backgroundColor: active ? "#ffffff" : "transparent",
-        boxShadow: active ? "0 4px 15px rgba(5, 41, 118, 0.05)" : "none",
+        padding: active ? "14px 18px" : "12px 16px",
+        borderRadius: "14px",
+        color: active ? "#ffffff" : "#495277",
+        background: active ? "linear-gradient(135deg, #0A358A 0%, #1e4bb5 100%)" : "transparent",
+        boxShadow: active ? "0 8px 24px rgba(10, 53, 138, 0.25)" : "none",
         textDecoration: "none",
         fontSize: "15px",
         fontWeight: active ? "700" : "500",
         marginBottom: "8px",
-        transition: "all 0.25s ease",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
-          e.currentTarget.style.transform = "translateX(4px)";
+          e.currentTarget.style.backgroundColor = "rgba(10, 53, 138, 0.05)";
+          e.currentTarget.style.color = "#0A358A";
+          e.currentTarget.style.transform = "translateX(6px)";
         }
       }}
       onMouseLeave={(e) => {
         if (!active) {
           e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = "#495277";
           e.currentTarget.style.transform = "translateX(0)";
         }
       }}
     >
-      <span style={{ fontSize: "18px" }}>{icon}</span>
+      <Icon size={20} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
       {label}
     </Link>
   );
@@ -206,24 +208,24 @@ export default function DashboardLayout({
 
         {/* Navigation */}
         <nav style={{ padding: "12px 20px", flex: 1, overflowY: "auto" }}>
-          <div style={{ fontSize: "12px", fontWeight: "800", color: "#8B95A5", padding: "8px 8px 12px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            MAIN SECTION
+          <div style={{ fontSize: "11px", fontWeight: "800", color: "#8B95A5", padding: "8px 8px 12px", textTransform: "uppercase", letterSpacing: "0.15em" }}>
+            Main Section
           </div>
-          <NavItem href="/dashboard/home" label="Dashboard" active={pathname === "/dashboard/home"} icon="🏠" />
-          <NavItem href="/dashboard/leaves" label="My Leaves" active={pathname.startsWith("/dashboard/leaves")} icon="📋" />
-          <NavItem href="/dashboard/profile" label="Profile" active={pathname === "/dashboard/profile"} icon="👤" />
+          <NavItem href="/dashboard/home" label="Dashboard" active={pathname === "/dashboard/home"} icon={LayoutDashboard} />
+          <NavItem href="/dashboard/leaves" label="My Leaves" active={pathname.startsWith("/dashboard/leaves")} icon={CalendarDays} />
+          <NavItem href="/dashboard/profile" label="Profile" active={pathname === "/dashboard/profile"} icon={User} />
 
           {isManager && (
             <>
-              <div style={{ fontSize: "12px", fontWeight: "800", color: "#8B95A5", padding: "24px 8px 12px", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                MANAGEMENT
+              <div style={{ fontSize: "11px", fontWeight: "800", color: "#8B95A5", padding: "28px 8px 12px", textTransform: "uppercase", letterSpacing: "0.15em" }}>
+                Management
               </div>
-              <NavItem href="/dashboard/manage" label="Review Leaves" active={pathname === "/dashboard/manage"} icon="✅" />
+              <NavItem href="/dashboard/manage" label="Review Leaves" active={pathname === "/dashboard/manage"} icon={CheckSquare} />
               {canUseUsersPage && (
-                <NavItem href="/dashboard/users" label="Users" active={pathname === "/dashboard/users"} icon="👥" />
+                <NavItem href="/dashboard/users" label="Users" active={pathname === "/dashboard/users"} icon={Users} />
               )}
               {canUseSitesPage && (
-                <NavItem href="/dashboard/sites" label="Sites" active={pathname === "/dashboard/sites"} icon="🏗️" />
+                <NavItem href="/dashboard/sites" label="Sites" active={pathname === "/dashboard/sites"} icon={Building2} />
               )}
             </>
           )}
@@ -235,24 +237,31 @@ export default function DashboardLayout({
             onClick={handleLogout}
             style={{
               width: "100%",
-              backgroundColor: "#FFF5F5",
+              backgroundColor: "rgba(220, 53, 69, 0.08)",
               color: "#DC3545",
-              border: "1px solid #FFE5E5",
+              border: "1px solid rgba(220, 53, 69, 0.2)",
               padding: "14px",
               borderRadius: "14px",
               cursor: "pointer",
               fontSize: "14px",
               fontWeight: "700",
               textAlign: "center",
-              transition: "all 0.2s ease",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              transition: "all 0.3s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#FFE5E5";
+              e.currentTarget.style.backgroundColor = "rgba(220, 53, 69, 0.15)";
+              e.currentTarget.style.transform = "translateY(-2px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#FFF5F5";
+              e.currentTarget.style.backgroundColor = "rgba(220, 53, 69, 0.08)";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
+            <LogOut size={18} strokeWidth={2.5} />
             Sign Out
           </button>
         </div>

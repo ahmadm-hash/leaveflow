@@ -9,6 +9,7 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { LeaveCalendar } from "../../components/LeaveCalendar";
 import { Toaster, toast } from "sonner";
 import { ROLE_COLORS, theme } from "../../lib/theme";
+import { Building2, CheckCircle2, Plus, ClipboardList, Activity } from "lucide-react";
 
 export default function DashboardHome() {
   const user = useAuthStore((state) => state.user);
@@ -564,11 +565,17 @@ export default function DashboardHome() {
                 {todayPresenceRows.map((row) => (
                   <div key={row.siteId} style={sitePresenceCardStyle}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#1d2751" }}>🏗️ {row.siteName}</span>
+                      <span style={{ fontSize: "15px", fontWeight: 700, color: "#1d2751", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <Building2 size={18} color="#0A358A" /> {row.siteName}
+                      </span>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <span style={pillSuccessStyle}>✅ {row.present.length} Present</span>
+                        <span style={{ ...pillSuccessStyle, display: "flex", alignItems: "center", gap: "4px" }}>
+                          <CheckCircle2 size={14} /> {row.present.length} Present
+                        </span>
                         {row.absent.length > 0 && (
-                          <span style={pillDangerStyle}>🏖️ {row.absent.length} On Leave</span>
+                          <span style={{ ...pillDangerStyle, display: "flex", alignItems: "center", gap: "4px" }}>
+                            <Activity size={14} /> {row.absent.length} On Leave
+                          </span>
                         )}
                       </div>
                     </div>
@@ -701,18 +708,20 @@ export default function DashboardHome() {
         {loading ? (
           <div style={{ color: "#999", fontSize: "14px", padding: "20px 0", textAlign: "center" }}>Loading...</div>
         ) : recentLeaves.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "30px 0" }}>
-            <div style={{ fontSize: "36px", marginBottom: "8px" }}>📋</div>
-            <div style={{ color: "#6f6a63", fontSize: "14px", marginBottom: "12px" }}>
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+              <ClipboardList size={48} color="#a0aec0" strokeWidth={1.5} />
+            </div>
+            <div style={{ color: "#6f6a63", fontSize: "15px", fontWeight: "500", marginBottom: "16px" }}>
               {canSubmitLeave ? "No leave requests yet." : "No team leave requests found."}
             </div>
             {canSubmitLeave ? (
               <Link href="/dashboard/leaves/new" className="brand-btn brand-btn-primary hover-lift" style={emptyStateActionStyle}>
-                Submit your first request
+                <Plus size={16} /> Submit your first request
               </Link>
             ) : (
               <Link href="/dashboard/manage" className="brand-btn brand-btn-primary hover-lift" style={emptyStateActionStyle}>
-                Open review queue
+                <CheckCircle2 size={16} /> Open review queue
               </Link>
             )}
           </div>
