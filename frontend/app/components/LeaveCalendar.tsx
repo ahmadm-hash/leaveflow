@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { LeaveRequestItem } from "../lib/leaveService";
+import styles from "./LeaveCalendar.module.css";
 
 interface LeaveCalendarProps {
   title: string;
   leaves: LeaveRequestItem[];
   emptyMessage: string;
   accentColor?: string;
+  visualStyle?: "default" | "supervisor";
 }
 
 export function LeaveCalendar({
@@ -15,12 +17,15 @@ export function LeaveCalendar({
   leaves,
   emptyMessage,
   accentColor = "#052976",
+  visualStyle = "default",
 }: LeaveCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const todayIso = new Date().toISOString().split("T")[0];
+  const isSupervisorView = visualStyle === "supervisor";
 
   const monthDays = useMemo(() => {
     const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -67,128 +72,118 @@ export function LeaveCalendar({
   }, [leaves]);
 
   const selectedEvents = selectedDate ? eventsByDate.get(selectedDate) ?? [] : [];
+  const pendingCount = leaves.filter((leave) => leave.status.includes("PENDING")).length;
+  const approvedCount = leaves.filter((leave) => leave.status.startsWith("APPROVED")).length;
+  const rejectedCount = leaves.filter((leave) => leave.status === "REJECTED").length;
+  const accentClass = accentColor.toLowerCase() === "#8142ff" ? styles.accentViolet : "";
 
   return (
-    <div
-      style={{
-        backgroundColor: "white",
-        borderRadius: "12px",
-        border: "1px solid #dcc8b6",
-        padding: "22px",
-        boxShadow: "0 10px 26px rgba(5,41,118,0.06)",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+    <div className={`${styles.panel} ${accentClass} ${isSupervisorView ? styles.supervisor : ""}`}>
+      <div className={styles.header}>
         <div>
-          <h2 style={{ margin: 0, fontSize: "18px", color: "#052976", fontWeight: 700 }}>{title}</h2>
-          <div style={{ color: "#6f6a63", fontSize: "13px", marginTop: "4px" }}>
+          <h2 className={styles.title}>{title}</h2>
+          <div className={styles.subtitle}>
             Click any day to view linked requests
           </div>
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))} style={navBtnStyle}>
+        <div className={styles.controlRow}>
+          <button
+            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+            className={styles.navBtn}
+            aria-label="Previous month"
+          >
             ←
           </button>
-          <div style={{ minWidth: "170px", textAlign: "center", fontWeight: 600, color: "#1d2751" }}>
+          <div className={styles.monthLabel}>
             {currentMonth.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
           </div>
-          <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))} style={navBtnStyle}>
+          <button
+            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+            className={styles.navBtn}
+            aria-label="Next month"
+          >
             →
           </button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px" }}>
+      {isSupervisorView && (
+        <div className={styles.stats}>
+          <span className={`${styles.statChip} ${styles.statPending}`}>Pending: {pendingCount}</span>
+          <span className={`${styles.statChip} ${styles.statApproved}`}>Approved: {approvedCount}</span>
+          <span className={`${styles.statChip} ${styles.statRejected}`}>Rejected: {rejectedCount}</span>
+        </div>
+      )}
+
+      <div className={styles.gridWrap}>
+        <div className={styles.grid}>
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} style={{ textAlign: "center", fontSize: "12px", color: "#8a6848", fontWeight: 600 }}>
+          <div key={day} className={styles.weekday}>
             {day}
           </div>
         ))}
 
         {monthDays.map((day) => {
           if (!day.inMonth) {
-            return <div key={day.iso} style={{ minHeight: "90px" }} />;
+            return <div key={day.iso} className={styles.emptyPad} />;
           }
 
           const events = eventsByDate.get(day.iso) ?? [];
           const isSelected = selectedDate === day.iso;
+          const isToday = day.iso === todayIso;
 
           return (
             <button
               key={day.iso}
               onClick={() => setSelectedDate(day.iso)}
-              style={{
-                minHeight: "90px",
-                borderRadius: "10px",
-                border: `1px solid ${isSelected ? accentColor : "#dcc8b6"}`,
-                backgroundColor: isSelected ? `${accentColor}12` : "#fff",
-                padding: "10px",
-                cursor: "pointer",
-                textAlign: "left",
-              }}
+              className={`${styles.dayCell} ${isSelected ? styles.dayCellSelected : ""} ${isToday ? styles.today : ""}`}
+              aria-label={`Day ${day.label}, ${events.length} events`}
             >
-              <div style={{ fontWeight: 700, color: "#1d2751", marginBottom: "8px" }}>{day.label}</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+              <div className={styles.dayHeader}>
+                <span className={styles.dayNumber}>{day.label}</span>
+                {events.length > 0 && <span className={styles.eventCount}>{events.length}</span>}
+              </div>
+              <div className={styles.pills}>
                 {events.slice(0, 3).map((event) => (
                   <span
                     key={`${day.iso}-${event.id}`}
-                    style={{
-                      fontSize: "10px",
-                      padding: "2px 6px",
-                      borderRadius: "999px",
-                      backgroundColor: statusColor(event.status).bg,
-                      color: statusColor(event.status).color,
-                    }}
+                    className={`${styles.pill} ${statusToneClass(event.status, styles)}`}
                   >
                     {event.leaveType}
                   </span>
                 ))}
                 {events.length > 3 && (
-                  <span style={{ fontSize: "10px", color: "#6f6a63" }}>+{events.length - 3}</span>
+                  <span className={styles.moreCount}>+{events.length - 3}</span>
                 )}
               </div>
             </button>
           );
         })}
+        </div>
       </div>
 
-      <div style={{ marginTop: "18px", borderTop: "1px solid #ebe1d2", paddingTop: "14px" }}>
+      <div className={styles.details}>
         {!selectedDate ? (
-          <div style={{ color: "#6f6a63", fontSize: "13px" }}>{emptyMessage}</div>
+          <div className={styles.emptyMessage}>{emptyMessage}</div>
         ) : selectedEvents.length === 0 ? (
-          <div style={{ color: "#6f6a63", fontSize: "13px" }}>No requests on {selectedDate}.</div>
+          <div className={styles.emptyMessage}>No requests on {selectedDate}.</div>
         ) : (
-          <div style={{ display: "grid", gap: "10px" }}>
+          <div className={styles.eventList}>
             {selectedEvents.map((event) => (
-              <div
-                key={event.id}
-                style={{
-                  border: "1px solid #ebe1d2",
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: "#fffaf5",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+              <div key={event.id} className={styles.eventCard}>
+                <div className={styles.eventHeader}>
                   <div>
-                    <div style={{ fontWeight: 600, color: "#1d2751" }}>
+                    <div className={styles.eventName}>
                       {event.employee?.fullName ?? event.leaveType}
                     </div>
-                    <div style={{ fontSize: "12px", color: "#6f6a63", marginTop: "4px" }}>
+                    <div className={styles.eventMeta}>
                       {event.leaveType} · {formatDate(event.startDate)} - {formatDate(event.endDate)}
                     </div>
                   </div>
                   <span
-                    style={{
-                      padding: "4px 10px",
-                      borderRadius: "999px",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      backgroundColor: statusColor(event.status).bg,
-                      color: statusColor(event.status).color,
-                    }}
+                    className={`${styles.status} ${statusToneClass(event.status, styles)}`}
                   >
-                    {event.status}
+                    {event.status.replaceAll("_", " ")}
                   </span>
                 </div>
               </div>
@@ -200,23 +195,15 @@ export function LeaveCalendar({
   );
 }
 
-const navBtnStyle: React.CSSProperties = {
-  width: "34px",
-  height: "34px",
-  borderRadius: "8px",
-  border: "1px solid #dcc8b6",
-  backgroundColor: "white",
-  cursor: "pointer",
-};
-
-const statusColor = (status: string) => {
-  if (status === "APPROVED_BY_DEPARTMENT_HEAD") return { bg: "#daf7ea", color: "#0a9d76" };
-  if (status === "APPROVED_BY_SUPERVISOR") return { bg: "#e7efff", color: "#103576" };
-  if (status === "CANCELLATION_REQUESTED") return { bg: "#f3e6d8", color: "#8a6848" };
-  if (status === "REJECTED") return { bg: "#f8d7da", color: "#721c24" };
-  if (status === "CANCELLED") return { bg: "#eceff6", color: "#5b6680" };
-  return { bg: "#eef2ff", color: "#103576" };
-};
+function statusToneClass(status: string, styleMap: Record<string, string>) {
+  if (status === "APPROVED_BY_DEPARTMENT_HEAD") return styleMap.toneApproved;
+  if (status === "APPROVED_BY_SUPERVISOR") return styleMap.toneApprovedSupervisor;
+  if (status.includes("PENDING")) return styleMap.tonePending;
+  if (status === "CANCELLATION_REQUESTED") return styleMap.toneCancelRequested;
+  if (status === "REJECTED") return styleMap.toneRejected;
+  if (status === "CANCELLED") return styleMap.toneCancelled;
+  return styleMap.toneApprovedSupervisor;
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });

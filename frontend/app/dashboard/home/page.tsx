@@ -691,6 +691,7 @@ export default function DashboardHome() {
             leaves={managedLeaves}
             emptyMessage="Select a day to review leave requests for employees in your site."
             accentColor="#8142ff"
+            visualStyle="supervisor"
           />
         )}
       </div>
