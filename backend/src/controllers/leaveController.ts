@@ -654,6 +654,8 @@ export const leaveController = {
             select: {
               fullName: true,
               username: true,
+              role: true,
+              annualLeaveBalance: true,
             },
           },
           site: {
@@ -718,79 +720,140 @@ export const leaveController = {
       const doc = new PDFDocument({ size: "A4", margin: 48 });
       doc.pipe(res);
 
-      doc
-        .rect(40, 34, 515, 90)
-        .fillAndStroke("#f6f9ff", "#d3e0ff");
-      doc.fillColor("#0b3a86");
-      doc.fontSize(11).text("Royal Commission LeaveFlow", 56, 52, { align: "left" });
-      doc.fontSize(21).text("Leave Approval Certificate", 56, 70, { align: "left" });
-      doc
-        .fontSize(10)
-        .fillColor("#5b6477")
-        .text("Official copy for approved leave request", 56, 96, { align: "left" });
+      doc.font("Helvetica");
 
-      doc
-        .roundedRect(415, 52, 118, 54, 8)
-        .fillAndStroke("#ecfdf5", "#6abf8f");
-      doc.fillColor("#13653f").fontSize(11).text("FINAL APPROVED", 427, 70);
-      doc.fillColor("#13653f").fontSize(9).text("Department Head Signed", 425, 86);
+      // --- HEADER ---
+      doc.fontSize(12).fillColor("#2b569a").text("Royal Commission for Jubail & Yanbu", 50, 40, { align: "center", width: 500 });
+      doc.fontSize(16).fillColor("black").font("Helvetica-Bold").text("LEAVE REQUEST FORM", 50, 65, { align: "center", width: 500 });
+      doc.fontSize(10).font("Helvetica").text(`Submission Date: ${formatDate(leaveRequest.createdAt)}`, 50, 85, { align: "right" });
+      
+      doc.fontSize(11).font("Helvetica-Bold").text("Project: O&M of Computers No. 13690 (POM N-2759) in Yanbu", 50, 95, { align: "center", width: 500 });
+      doc.text("Company: Al-Aseel Solutions Ltd.", 50, 110, { align: "center", width: 500 });
 
-      doc.fillColor("black");
-      doc.y = 146;
+      doc.font("Helvetica");
 
-      doc.fontSize(12).text(`Employee: ${leaveRequest.employee.fullName}`);
-      doc.text(`Username: ${leaveRequest.employee.username}`);
-      doc.text(`Leave Type: ${leaveRequest.leaveType}`);
-      doc.text(`Department: ${leaveRequest.department?.name ?? "-"}`);
-      doc.text(`Site: ${leaveRequest.site?.name ?? "-"}`);
-      doc.text(`Start Date: ${formatDate(leaveRequest.startDate)}`);
-      doc.text(`End Date: ${formatDate(leaveRequest.endDate)}`);
-      doc.text(`Total Days: ${getInclusiveDays(leaveRequest.startDate, leaveRequest.endDate)}`);
-      doc.text(`Status: Final Approval Completed`);
+      // --- COLORS & HELPERS ---
+      const primaryBlue = "#2b569a";
+      const borderColor = "#000000";
+      
+      let y = 140;
+      
+      // --- TABLE 1: Applicant Information ---
+      doc.rect(50, y, 495, 20).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Applicant Information", 50, y + 6, { align: "center", width: 495 });
+      y += 20;
 
-      if (leaveRequest.reason) {
-        doc.moveDown(0.6);
-        doc.fontSize(11).fillColor("#374151").text("Reason", { underline: true });
-        doc.fillColor("black").fontSize(12).text(leaveRequest.reason);
-      }
+      // Row 1: Employee Name
+      doc.rect(50, y, 495, 25).stroke(borderColor);
+      doc.rect(50, y, 140, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").text("Employee Name", 55, y + 8);
+      doc.fillColor("black").font("Helvetica").text(leaveRequest.employee.fullName, 195, y + 8);
+      y += 25;
 
-      doc.moveDown(2.2);
+      // Row 2: Job Title / Dept
+      doc.rect(50, y, 495, 25).stroke(borderColor);
+      // Col 1
+      doc.rect(50, y, 140, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Job Title", 55, y + 8);
+      doc.fillColor("black").font("Helvetica").text(leaveRequest.employee.role, 195, y + 8);
+      // Col 2
+      doc.rect(300, y, 80, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Department", 305, y + 8);
+      doc.fillColor("black").font("Helvetica").text(leaveRequest.department?.name ?? "-", 385, y + 8);
+      y += 25;
 
-      const stampCenterX = 116;
-      const stampCenterY = doc.y + 58;
-      doc.circle(stampCenterX, stampCenterY, 52).lineWidth(2).stroke("#b42318");
-      doc.circle(stampCenterX, stampCenterY, 41).lineWidth(1).stroke("#b42318");
-      doc
-        .fontSize(10)
-        .fillColor("#b42318")
-        .text("OFFICIAL", stampCenterX - 26, stampCenterY - 10, { width: 52, align: "center" });
-      doc
-        .fontSize(8)
-        .fillColor("#b42318")
-        .text("RCJY", stampCenterX - 18, stampCenterY + 8, { width: 36, align: "center" });
+      // Row 3: Start Date / End Date
+      doc.rect(50, y, 495, 25).stroke(borderColor);
+      // Col 1
+      doc.rect(50, y, 140, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Leave Start Date", 55, y + 8);
+      doc.fillColor("black").font("Helvetica").text(formatDate(leaveRequest.startDate), 195, y + 8);
+      // Col 2
+      doc.rect(300, y, 80, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Leave End Date", 305, y + 8);
+      doc.fillColor("black").font("Helvetica").text(formatDate(leaveRequest.endDate), 385, y + 8);
+      y += 25;
 
-      doc
-        .roundedRect(190, stampCenterY - 36, 330, 108, 10)
-        .fillAndStroke("#fbfcff", "#d5ddee");
-      doc.image(qrCodeBuffer, 430, stampCenterY - 24, { width: 72, height: 72 });
-      doc
-        .moveTo(208, stampCenterY + 18)
-        .lineTo(410, stampCenterY + 18)
-        .lineWidth(1)
-        .stroke("#9aa4b2");
-      doc.fontSize(10).fillColor("#6b7280").text("Department Head Signature", 208, stampCenterY - 20);
-      doc.fontSize(16).fillColor("#111827").text(signedBy, 208, stampCenterY - 2);
-      doc.fontSize(10).fillColor("#6b7280").text(`Signed on ${formatDate(signedAt)}`, 208, stampCenterY + 28);
-      doc.fontSize(8).fillColor("#6b7280").text("Scan to verify reference", 420, stampCenterY + 52, {
-        width: 92,
-        align: "center",
-      });
+      // Row 4: Requested Days / Balance
+      const totalDays = getInclusiveDays(leaveRequest.startDate, leaveRequest.endDate);
+      doc.rect(50, y, 495, 25).stroke(borderColor);
+      // Col 1
+      doc.rect(50, y, 140, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Requested Days", 55, y + 8);
+      doc.fillColor("black").font("Helvetica").text(String(totalDays), 195, y + 8);
+      // Col 2
+      doc.rect(300, y, 80, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Rem. Balance", 305, y + 8);
+      doc.fillColor("black").font("Helvetica").text(leaveRequest.employee.annualLeaveBalance !== null ? String(leaveRequest.employee.annualLeaveBalance) : "-", 385, y + 8);
+      y += 25;
 
-      doc.moveDown(2);
-      doc
-        .fontSize(9)
-        .fillColor("#9ca3af")
-        .text(`Reference: ${leaveRequest.id}`, { align: "center" });
+      // Row 5: Leave Type / Emp Signature
+      doc.rect(50, y, 495, 25).stroke(borderColor);
+      // Col 1
+      doc.rect(50, y, 140, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Leave Type", 55, y + 8);
+      doc.fillColor("black").font("Helvetica").text(leaveRequest.leaveType, 195, y + 8);
+      // Col 2
+      doc.rect(300, y, 80, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Emp Signature", 305, y + 8);
+      doc.fillColor("black").font("Helvetica").text("Electronic Signature", 385, y + 8);
+      y += 25;
+
+      // Row 6: Supervisor Rec / Sup Signature
+      doc.rect(50, y, 495, 25).stroke(borderColor);
+      // Col 1
+      doc.rect(50, y, 140, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Supervisor Rec.", 55, y + 8);
+      
+      doc.fillColor("black").font("Helvetica").text("[ X ] Approved     [   ] Rejected", 195, y + 8);
+
+      // Col 2
+      doc.rect(300, y, 80, 25).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Sup. Signature", 305, y + 8);
+      doc.fillColor("black").font("Helvetica").text("Electronic Signature", 385, y + 8);
+      y += 25;
+
+      // Row 7: Notes
+      doc.rect(50, y, 495, 40).stroke(borderColor);
+      doc.rect(50, y, 140, 40).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Notes", 55, y + 16);
+      doc.fillColor("black").font("Helvetica").text(leaveRequest.reason || "None", 195, y + 6, { width: 340, height: 30 });
+      y += 40;
+
+      // --- TABLE 2: Management Approval ---
+      y += 20;
+      doc.rect(50, y, 495, 20).fillAndStroke(primaryBlue, borderColor);
+      doc.fillColor("white").font("Helvetica-Bold").text("Management Approval", 50, y + 6, { align: "center", width: 495 });
+      y += 20;
+
+      // Row 1: RC Department Director
+      doc.rect(50, y, 495, 70).stroke(borderColor);
+      doc.rect(50, y, 220, 70).stroke(borderColor); // col 1
+      doc.fillColor("black").font("Helvetica").text("RC Department Director:", 55, y + 5);
+      
+      doc.text("[ X ] Approved", 280, y + 5);
+      doc.text("[   ] Rejected", 280, y + 18);
+      doc.text(`Signature: ${signedBy}`, 280, y + 36);
+      doc.text(`Date: ${formatDate(signedAt)}`, 280, y + 52);
+
+      doc.image(qrCodeBuffer, 470, y + 5, { width: 60 }); 
+
+      y += 70;
+
+      // Row 2: RC Project Manager Signature
+      doc.rect(50, y, 495, 55).stroke(borderColor);
+      doc.rect(50, y, 220, 55).stroke(borderColor); // col 1
+      doc.fillColor("black").font("Helvetica").text("RC Project Manager Signature:", 55, y + 5);
+      doc.text("Signature:", 280, y + 5);
+      doc.text("Date:", 280, y + 35);
+      y += 55;
+
+      // Row 3: Project Manager
+      doc.rect(50, y, 495, 55).stroke(borderColor);
+      doc.rect(50, y, 220, 55).stroke(borderColor); // col 1
+      doc.fillColor("black").font("Helvetica").text("Project Manager:", 55, y + 5);
+      doc.text("Signature:", 280, y + 5);
+      doc.text("Date:", 280, y + 35);
 
       doc.end();
     } catch (error) {
