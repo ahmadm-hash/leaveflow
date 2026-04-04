@@ -195,7 +195,7 @@ export default function DashboardHome() {
   }, [canViewPresence, managedEmployees, managedLeaves]);
 
   const todayPresenceRows = useMemo(() => {
-    if (!actsAsDepartmentHead && user?.role !== "ADMIN") return [];
+    if (!actsAsDepartmentHead && user?.role !== "ADMIN" && user?.role !== "SUPERVISOR") return [];
     if (managedEmployees.length === 0) return [];
 
     const todayStr = new Date().toISOString().slice(0, 10);
@@ -472,6 +472,76 @@ export default function DashboardHome() {
         <StatCard label="Approved" value={stats.approved} color="var(--rc-green-500)" />
         <StatCard label="Rejected" value={stats.rejected} color="var(--rc-danger-600)" />
       </div>
+
+      {user?.role === "SUPERVISOR" && todayPresenceRows.length > 0 && (
+        <div style={{
+          background: "#ffffff",
+          borderRadius: "16px",
+          padding: "24px",
+          boxShadow: "0 4px 15px rgba(5, 41, 118, 0.04)"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
+            <div>
+              <h2 style={{ margin: "0 0 6px 0", fontSize: "16px", color: "#0A358A", fontWeight: "800" }}>
+                Today&apos;s Attendance
+              </h2>
+              <p style={{ margin: 0, fontSize: "12px", color: "#8c7a69" }}>
+                {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <span style={summaryPillSuccessStyle}>{todayAttendanceSummary.present} Present</span>
+              <span style={summaryPillDangerStyle}>{todayAttendanceSummary.absent} On Leave</span>
+            </div>
+          </div>
+
+          <div style={{ height: "8px", borderRadius: "999px", background: "#e5ecfb", overflow: "hidden", marginBottom: "16px" }}>
+            <div style={{ width: `${todayAttendanceSummary.presentRate}%`, height: "100%", borderRadius: "999px", background: "linear-gradient(90deg, #20cc76 0%, #4cc4ff 100%)", transition: "width 240ms ease" }} />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "360px", overflowY: "auto", paddingRight: "4px" }}>
+            {todayPresenceRows.map((row) => (
+              <div key={row.siteId} style={sitePresenceCardStyle}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#1d2751", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <Building2 size={18} color="#0A358A" /> {row.siteName}
+                  </span>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={{ ...pillSuccessStyle, display: "flex", alignItems: "center", gap: "4px" }}>
+                      <CheckCircle2 size={14} /> {row.present.length} Present
+                    </span>
+                    {row.absent.length > 0 && (
+                      <span style={{ ...pillDangerStyle, display: "flex", alignItems: "center", gap: "4px" }}>
+                        <Activity size={14} /> {row.absent.length} On Leave
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {row.present.map((emp) => (
+                    <div key={emp.id} style={employeePresentChipStyle}>
+                      <span style={presentDotStyle} />
+                      {emp.fullName}
+                    </div>
+                  ))}
+                  {row.absent.map((emp) => (
+                    <div key={emp.id} style={employeeAbsentChipStyle}>
+                      <span style={absentDotStyle} />
+                      {emp.fullName}
+                    </div>
+                  ))}
+                  {row.present.length === 0 && (
+                    <span style={siteHintTextStyle}>No one present in this site today.</span>
+                  )}
+                  {row.absent.length === 0 && (
+                    <span style={siteHintTextStyle}>All employees present today.</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {(actsAsDepartmentHead || user?.role === "ADMIN") && (sitePresenceRows.length > 0 || todayPresenceRows.length > 0) && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "16px" }}>
