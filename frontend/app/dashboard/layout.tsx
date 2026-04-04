@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "../store/authStore";
 import { useRouter } from "next/navigation";
 import { authService } from "../lib/authService";
-import { LayoutDashboard, CalendarDays, User, CheckSquare, Users, Building2, LogOut } from "lucide-react";
+import { LayoutDashboard, CalendarDays, User, CheckSquare, Users, Building2, LogOut, Menu, X } from "lucide-react";
+import "../mobile.css";
 
 function NavItem({ href, label, active, icon: Icon }: { href: string; label: string; active: boolean; icon: React.ElementType }) {
   return (
@@ -57,6 +58,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user, isAuthenticated, logout, hasHydrated, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -112,9 +114,50 @@ export default function DashboardLayout({
   const canUseSitesPage = canUseDepartmentHeadTools;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "transparent" }}>
+    <div className="dashboard-layout" style={{ display: "flex", minHeight: "100vh", background: "transparent" }}>
+      {/* Mobile Top Bar */}
+      <div className="mobile-menu-toggle" style={{ display: "none" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, #3f2b96 0%, #0A358A 100%)",
+            color: "#ffffff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "16px",
+            fontWeight: "800",
+            letterSpacing: "0.05em",
+            boxShadow: "0 4px 10px rgba(10, 53, 138, 0.3)"
+          }}>
+            RJ
+          </div>
+          <div style={{ fontSize: "16px", fontWeight: "800", color: "#0A358A", lineHeight: 1.2 }}>
+            RC Jubail & Yanbu
+          </div>
+        </div>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "#0A358A",
+            cursor: "pointer",
+            padding: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+      </div>
+
       {/* Sidebar - Glassmorphic design */}
       <div
+        className="dashboard-sidebar"
         style={{
           width: "280px",
           minWidth: "280px",
@@ -129,34 +172,35 @@ export default function DashboardLayout({
           overflow: "hidden"
         }}
       >
-        {/* Logo */}
-        <div style={{ padding: "32px 24px 24px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{
-            width: "56px",
-            height: "56px",
-            borderRadius: "18px",
-            background: "linear-gradient(135deg, #3f2b96 0%, #0A358A 100%)",
-            color: "#ffffff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "20px",
-            fontWeight: "800",
-            letterSpacing: "0.05em",
-            boxShadow: "0 8px 20px rgba(10, 53, 138, 0.3)"
-          }}>
-            RJ
+        <div className={`sidebar-nav-container ${isMobileMenuOpen ? "open" : ""}`} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          {/* Logo */}
+          <div className="sidebar-logo" style={{ padding: "32px 24px 24px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{
+              width: "56px",
+              height: "56px",
+              borderRadius: "18px",
+              background: "linear-gradient(135deg, #3f2b96 0%, #0A358A 100%)",
+              color: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "20px",
+              fontWeight: "800",
+              letterSpacing: "0.05em",
+              boxShadow: "0 8px 20px rgba(10, 53, 138, 0.3)"
+            }}>
+              RJ
+            </div>
+            <Link href="/dashboard/home" style={{ textDecoration: "none" }}>
+               <div style={{ fontSize: "18px", fontWeight: "800", color: "#0A358A", lineHeight: 1.2 }}>
+                 RC Jubail<br/>& Yanbu
+               </div>
+            </Link>
           </div>
-          <Link href="/dashboard/home" style={{ textDecoration: "none" }}>
-             <div style={{ fontSize: "18px", fontWeight: "800", color: "#0A358A", lineHeight: 1.2 }}>
-               RC Jubail<br/>& Yanbu
-             </div>
-          </Link>
-        </div>
 
-        {/* User card */}
-        <div style={{ padding: "0 20px 24px" }}>
-          <div
+          {/* User card */}
+          <div style={{ padding: "0 20px 24px" }}>
+            <div
             style={{
               padding: "16px",
               background: "#ffffff",
@@ -265,11 +309,12 @@ export default function DashboardLayout({
             Sign Out
           </button>
         </div>
+        </div>
       </div>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, padding: "32px 40px", overflowX: "auto" }}>
-        <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
+      <div className="dashboard-main-content" style={{ flex: 1, padding: "32px 40px", overflowX: "hidden" }}>
+        <div style={{ maxWidth: "1600px", margin: "0 auto", width: "100%" }}>
           {children}
         </div>
       </div>
