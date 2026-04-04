@@ -85,4 +85,4 @@ a {
 .brand-mark:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 14px 28px rgba(5, 41, 118, 0.35);
-}
+}@keyframes lucide-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } .lucide-spin { animation: lucide-spin 1s linear infinite; }

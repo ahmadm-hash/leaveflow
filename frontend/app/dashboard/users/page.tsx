@@ -8,6 +8,7 @@ import { Card } from "../../components/Card";
 import { Alert } from "../../components/Alert";
 import { toast, Toaster } from "sonner";
 import { ROLE_COLORS, theme } from "../../lib/theme";
+import { ShieldCheck, ShieldOff, KeyRound, Crown, UserX, Loader2, FileCheck, FileX, ShieldAlert } from "lucide-react";
 
 type Tab = "list" | "create";
 
@@ -340,13 +341,22 @@ export default function UsersPage() {
                           className="brand-btn brand-btn-outline"
                           onClick={() => toggleSupervisor(managedUser)}
                           style={{
-                            ...outlineButtonStyle("#2633ff"),
+                            ...outlineButtonStyle("#0A358A"),
                             width: "100%",
-                            padding: "8px 12px",
+                            padding: "10px 14px",
                             fontSize: "13px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            transition: "all 0.2s ease"
                           }}
                         >
-                          {managedUser.role === "SUPERVISOR" ? "🚫 Remove Supervisor" : "⭐ Make Supervisor"}
+                          {managedUser.role === "SUPERVISOR" ? (
+                            <><ShieldOff size={16} /> Remove Supervisor</>
+                          ) : (
+                            <><ShieldCheck size={16} /> Make Supervisor</>
+                          )}
                         </button>
                       )}
 
@@ -357,11 +367,20 @@ export default function UsersPage() {
                           style={{
                             ...outlineButtonStyle("#bc9470"),
                             width: "100%",
-                            padding: "8px 12px",
+                            padding: "10px 14px",
                             fontSize: "13px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            transition: "all 0.2s ease"
                           }}
                         >
-                          {managedUser.delegatedDepartmentHead ? "🔄 Remove Delegation" : "👑 Delegate Powers"}
+                          {managedUser.delegatedDepartmentHead ? (
+                            <><ShieldAlert size={16} /> Remove Delegation</>
+                          ) : (
+                            <><Crown size={16} /> Delegate Powers</>
+                          )}
                         </button>
                       )}
 
@@ -370,13 +389,18 @@ export default function UsersPage() {
                           className="brand-btn brand-btn-outline"
                           onClick={() => handleResetPassword(managedUser)}
                           style={{
-                            ...outlineButtonStyle("#198754"),
+                            ...outlineButtonStyle("#0a9d76"),
                             width: "100%",
-                            padding: "8px 12px",
+                            padding: "10px 14px",
                             fontSize: "13px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            transition: "all 0.2s ease"
                           }}
                         >
-                          🔐 Reset Password
+                          <KeyRound size={16} /> Reset Password
                         </button>
                       )}
 
@@ -385,13 +409,22 @@ export default function UsersPage() {
                           className="brand-btn brand-btn-outline"
                           onClick={() => toggleSignedPdfAccess(managedUser)}
                           style={{
-                            ...outlineButtonStyle("#2d6a4f"),
+                            ...outlineButtonStyle("#495277"),
                             width: "100%",
-                            padding: "8px 12px",
+                            padding: "10px 14px",
                             fontSize: "13px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            transition: "all 0.2s ease"
                           }}
                         >
-                          {managedUser.canDownloadSignedLeavePdf ? "📄 Revoke PDF Access" : "📄 Grant PDF Access"}
+                          {managedUser.canDownloadSignedLeavePdf ? (
+                            <><FileX size={16} /> Revoke PDF Access</>
+                          ) : (
+                            <><FileCheck size={16} /> Grant PDF Access</>
+                          )}
                         </button>
                       )}
 
@@ -403,12 +436,21 @@ export default function UsersPage() {
                           style={{
                             ...outlineButtonStyle("#dc3545"),
                             width: "100%",
-                            padding: "8px 12px",
+                            padding: "10px 14px",
                             fontSize: "13px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
                             opacity: deactivating === managedUser.id ? 0.6 : 1,
+                            transition: "all 0.2s ease"
                           }}
                         >
-                          {deactivating === managedUser.id ? "⏳ Processing..." : "🚫 Deactivate"}
+                          {deactivating === managedUser.id ? (
+                            <><Loader2 size={16} className="lucide-spin" /> Processing...</>
+                          ) : (
+                            <><UserX size={16} /> Deactivate</>
+                          )}
                         </button>
                       )}
                     </div>
