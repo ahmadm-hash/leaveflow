@@ -183,7 +183,7 @@ export function LeaveCalendar({
                   <span
                     className={`${styles.status} ${statusToneClass(event.status, styles)}`}
                   >
-                    {event.status.replaceAll("_", " ")}
+                    {event.status.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
