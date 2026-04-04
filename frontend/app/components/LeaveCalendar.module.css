@@ -428,14 +428,204 @@
     grid-template-columns: repeat(7, minmax(72px, 1fr));
     min-width: 540px;
   }
+}
 
-  .supervisor .grid {
-    grid-template-columns: repeat(7, minmax(66px, 1fr));
-    min-width: 500px;
+/* ── Compact supervisor calendar ─────────────────────── */
+
+.compactHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.compactStats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.compactBody {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Mini calendar column */
+.miniCalWrap {
+  width: 230px;
+  flex-shrink: 0;
+}
+
+.miniCalNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 4px;
+}
+
+.miniMonthLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f376c;
+  text-align: center;
+  flex: 1;
+}
+
+.supervisor .navBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.miniWeekday {
+  text-align: center;
+  font-size: 10px;
+  color: #7a88a3;
+  font-weight: 700;
+  padding: 2px 0 4px;
+}
+
+.miniPad {
+  height: 28px;
+}
+
+.miniDay {
+  position: relative;
+  height: 28px;
+  width: 100%;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.miniDay:hover {
+  background: rgba(10, 53, 138, 0.07);
+  border-color: rgba(10, 53, 138, 0.18);
+}
+
+.miniDaySelected {
+  background: var(--calendar-selected-bg) !important;
+  border-color: var(--calendar-accent) !important;
+}
+
+.miniDayToday .miniDayNum {
+  color: var(--calendar-accent);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.miniDayNum {
+  font-size: 11px;
+  font-weight: 600;
+  color: #17316a;
+  line-height: 1;
+}
+
+.miniDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.dotPending  { background: #e8a500; }
+.dotApproved { background: #12b76a; }
+.dotOther    { background: #7a88a3; }
+
+/* Side event panel */
+.sidePanel {
+  min-height: 200px;
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidePlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  color: #7a88a3;
+  font-size: 12px;
+  text-align: center;
+  padding: 24px 12px;
+}
+
+.sidePlaceholderIcon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+.sidePanelDate {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3f5c9f;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--calendar-divider);
+  margin-bottom: 2px;
+}
+
+.sideEventList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sideEventCard {
+  border: 1px solid var(--calendar-divider);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sideEventName {
+  font-size: 12px;
+  font-weight: 700;
+  color: #17316a;
+}
+
+.sideEventMeta {
+  font-size: 11px;
+  color: #7a88a3;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 700px) {
+  .compactBody {
+    grid-template-columns: 1fr;
   }
 
-  .supervisor .dayCell,
-  .supervisor .emptyPad {
-    min-height: 72px;
+  .miniCalWrap {
+    width: 100%;
+  }
+
+  .sidePanel {
+    max-height: 200px;
   }
 }

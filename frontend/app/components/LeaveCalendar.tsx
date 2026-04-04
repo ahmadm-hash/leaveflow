@@ -77,8 +77,108 @@ export function LeaveCalendar({
   const rejectedCount = leaves.filter((leave) => leave.status === "REJECTED").length;
   const accentClass = accentColor.toLowerCase() === "#8142ff" ? styles.accentViolet : "";
 
+  if (isSupervisorView) {
+    return (
+      <div className={`${styles.panel} ${accentClass} ${styles.supervisor}`}>
+        {/* Header */}
+        <div className={styles.compactHeader}>
+          <div>
+            <h2 className={styles.title}>{title}</h2>
+          </div>
+          <div className={styles.compactStats}>
+            <span className={`${styles.statChip} ${styles.statPending}`}>⏳ {pendingCount}</span>
+            <span className={`${styles.statChip} ${styles.statApproved}`}>✓ {approvedCount}</span>
+            <span className={`${styles.statChip} ${styles.statRejected}`}>✕ {rejectedCount}</span>
+          </div>
+        </div>
+
+        {/* Body: mini calendar + side panel */}
+        <div className={styles.compactBody}>
+          {/* Mini Calendar */}
+          <div className={styles.miniCalWrap}>
+            <div className={styles.miniCalNav}>
+              <button
+                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                className={styles.navBtn}
+                aria-label="Previous month"
+              >←</button>
+              <span className={styles.miniMonthLabel}>
+                {currentMonth.toLocaleDateString("en-GB", { month: "short", year: "numeric" })}
+              </span>
+              <button
+                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+                className={styles.navBtn}
+                aria-label="Next month"
+              >→</button>
+            </div>
+            <div className={styles.miniGrid}>
+              {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                <div key={i} className={styles.miniWeekday}>{d}</div>
+              ))}
+              {monthDays.map((day) => {
+                if (!day.inMonth) return <div key={day.iso} className={styles.miniPad} />;
+                const events = eventsByDate.get(day.iso) ?? [];
+                const isSelected = selectedDate === day.iso;
+                const isToday = day.iso === todayIso;
+                const hasPending = events.some((e) => e.status.includes("PENDING"));
+                const hasApproved = events.some((e) => e.status.startsWith("APPROVED"));
+                return (
+                  <button
+                    key={day.iso}
+                    onClick={() => setSelectedDate(day.iso)}
+                    className={`${styles.miniDay} ${isSelected ? styles.miniDaySelected : ""} ${isToday ? styles.miniDayToday : ""}`}
+                    aria-label={`${day.label} – ${events.length} events`}
+                  >
+                    <span className={styles.miniDayNum}>{day.label}</span>
+                    {events.length > 0 && (
+                      <span className={`${styles.miniDot} ${hasPending ? styles.dotPending : hasApproved ? styles.dotApproved : styles.dotOther}`} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Side event list */}
+          <div className={styles.sidePanel}>
+            {!selectedDate ? (
+              <div className={styles.sidePlaceholder}>
+                <span className={styles.sidePlaceholderIcon}>📅</span>
+                <span>{emptyMessage}</span>
+              </div>
+            ) : selectedEvents.length === 0 ? (
+              <div className={styles.sidePlaceholder}>
+                <span className={styles.sidePlaceholderIcon}>📭</span>
+                <span>No requests on {formatDate(selectedDate)}.</span>
+              </div>
+            ) : (
+              <>
+                <div className={styles.sidePanelDate}>{formatDate(selectedDate)}</div>
+                <div className={styles.sideEventList}>
+                  {selectedEvents.map((event) => (
+                    <div key={event.id} className={styles.sideEventCard}>
+                      <div className={styles.sideEventName}>
+                        {event.employee?.fullName ?? event.leaveType}
+                      </div>
+                      <div className={styles.sideEventMeta}>
+                        {event.leaveType} · {formatDate(event.startDate)} – {formatDate(event.endDate)}
+                      </div>
+                      <span className={`${styles.status} ${statusToneClass(event.status, styles)}`}>
+                        {event.status.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`${styles.panel} ${accentClass} ${isSupervisorView ? styles.supervisor : ""}`}>
+    <div className={`${styles.panel} ${accentClass}`}>
       <div className={styles.header}>
         <div>
           <h2 className={styles.title}>{title}</h2>
@@ -106,14 +206,6 @@ export function LeaveCalendar({
           </button>
         </div>
       </div>
-
-      {isSupervisorView && (
-        <div className={styles.stats}>
-          <span className={`${styles.statChip} ${styles.statPending}`}>Pending: {pendingCount}</span>
-          <span className={`${styles.statChip} ${styles.statApproved}`}>Approved: {approvedCount}</span>
-          <span className={`${styles.statChip} ${styles.statRejected}`}>Rejected: {rejectedCount}</span>
-        </div>
-      )}
 
       <div className={styles.gridWrap}>
         <div className={styles.grid}>
