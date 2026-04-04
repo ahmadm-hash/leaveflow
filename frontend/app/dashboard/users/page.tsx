@@ -29,6 +29,7 @@ export default function UsersPage() {
   const canCreateEmployee = user?.role === "SUPERVISOR";
   const canCreateSupervisor = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
   const canManageSupervisors = user?.role === "DEPARTMENT_HEAD" || user?.role === "ADMIN";
+  const canResetAnyPassword = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead || user?.role === "ADMIN";
   const canResetEmployeePasswords = user?.role === "SUPERVISOR";
   const canGrantSignedPdfAccess = user?.role === "DEPARTMENT_HEAD" || user?.delegatedDepartmentHead;
 
@@ -364,7 +365,7 @@ export default function UsersPage() {
                         </button>
                       )}
 
-                      {canResetEmployeePasswords && managedUser.role === "EMPLOYEE" && managedUser.isActive !== false && (
+                      {((canResetEmployeePasswords && managedUser.role === "EMPLOYEE") || canResetAnyPassword) && managedUser.isActive !== false && (
                         <button
                           className="brand-btn brand-btn-outline"
                           onClick={() => handleResetPassword(managedUser)}
